@@ -21,8 +21,6 @@ class Space:
         self.canvas.bind('<MouseWheel>', self.move_wheel)
         self.canvas.bind('<Button-4>', self.move_wheel)
         self.canvas.bind('<Button-5>', self.move_wheel)
-        self.tk.bind('=', self.zoom_scale)
-        self.tk.bind('-', self.zoom_scale)
         self.canvas.bind('<Configure>', self.configure)
         self.tk.mainloop()
     def refresh(self):
@@ -66,10 +64,12 @@ class Space:
         self.refresh()
         self.move_rec = event
     def move_wheel(self, event):
-        self.camera -= numpy.linalg.inv(self.matrix).dot(numpy.array([0.0, 0.0, (-event.delta or event.num * 240 - 1080) / self.stick]))
-        self.refresh()
-    def zoom_scale(self, event):
-        self.scale *= event.keycode / (41 - event.keycode)
+        delta = event.delta or 1080 - event.num * 240
+        # move forward/backward when middle mouse button is pressed, otherwise zoom in/out
+        if event.state & 0x200:
+            self.camera -= numpy.linalg.inv(self.matrix).dot(numpy.array([0.0, 0.0, -delta / self.stick]))
+        else:
+            self.scale *= (2400 + delta) / (2400 - delta)
         self.refresh()
     def configure(self, event):
         self.center_y, self.center_x = 0.5 * event.height, 0.5 * event.width
