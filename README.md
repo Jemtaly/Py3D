@@ -17,6 +17,6 @@ python3 tk3d.py test.obj
 | Operation | Usage |
 | --- | --- |
 | Left Button | Rotation angle of view |
-| Middle Button | Move the camera |
+| Middle Button | Move the camera (scroll the wheel to move forward/backward) |
 | Right Button | Rotate the canvas |
 | <kbd>=</kbd> <kbd>-</kbd> | Zoom in/out |
