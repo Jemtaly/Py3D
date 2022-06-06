@@ -33,7 +33,8 @@ class Space:
             if relative[2] > 0:
                 relatives[k] = relative[0] / relative[2] * self.distance + self.center_x, relative[1] / relative[2] * self.distance + self.center_y
         self.canvas.delete(tkinter.ALL)
-        self.canvas.create_text(0.0, 0.0, fill='blue', text='Distance = {:.2f}'.format(self.distance), anchor=tkinter.NW)
+        self.canvas.create_text(0.0, 0.0, fill='blue', text='Scale = {:.2f} px'.format(self.scale), anchor=tkinter.NW)
+        self.canvas.create_text(0.0, 20.0, fill='blue', text='Distance = {:.2f} px'.format(self.distance), anchor=tkinter.NW)
         # for k, coordinate in relatives.items():
         #     self.canvas.create_text(*coordinate, fill='blue', text=k)
         for p, q in self.lines:
@@ -76,7 +77,7 @@ class Space:
         if event.state & 0x200: # move forward/backward
             self.camera -= numpy.linalg.inv(self.matrix).dot(numpy.array([0.0, 0.0, -delta / self.scale]))
         else: # zoom in/out
-            self.distance *= (2400 + delta) / (2400 - delta)
+            self.distance *= (4800 + delta) / (4800 - delta)
         self.refresh()
     def configure(self, event):
         self.center_y, self.center_x = 0.5 * event.height, 0.5 * event.width
