@@ -7,7 +7,7 @@ class Space:
         self.scale = scale # number of pixels corresponding to each unit length in the space
         self.distance = distance # number of pixels between the viewpoint and the projection plane
         self.camera = numpy.array([0.0, 0.0, 0.0])
-        self.rotate = numpy.array([0.0, 0.0, 0.0])
+        self.matrix = numpy.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
     def start(self):
         self.tk = tkinter.Tk()
         self.canvas = tkinter.Canvas(self.tk)
@@ -26,27 +26,15 @@ class Space:
         self.canvas.bind('<MouseWheel>', self.wheel) # for windows
         self.canvas.bind('<Configure>', self.configure)
         self.tk.mainloop()
-    def get_mat(self):
-        my = numpy.array([[math.cos(self.rotate[1]), 0.0, -math.sin(self.rotate[1])], [0.0, 1.0, 0.0], [math.sin(self.rotate[1]), 0.0, math.cos(self.rotate[1])]])
-        mx = numpy.array([[1.0, 0.0, 0.0], [0.0, math.cos(self.rotate[0]), -math.sin(self.rotate[0])], [0.0, math.sin(self.rotate[0]), math.cos(self.rotate[0])]])
-        mz = numpy.array([[math.cos(self.rotate[2]), math.sin(self.rotate[2]), 0.0], [-math.sin(self.rotate[2]), math.cos(self.rotate[2]), 0.0], [0.0, 0.0, 1.0]])
-        return mz.dot(mx.dot(my.dot(numpy.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]]))))
     def refresh(self):
-        matrix = self.get_mat()
         relatives = {}
         for k, coordinate in self.points.items():
-            relative = matrix.dot(coordinate - self.camera)
+            relative = self.matrix.dot(coordinate - self.camera)
             if relative[2] > 0:
                 relatives[k] = relative[0] / relative[2] * self.distance + self.center_x, relative[1] / relative[2] * self.distance + self.center_y
         self.canvas.delete(tkinter.ALL)
-        self.canvas.create_text(0.0, 0.0, fill='blue', text='Distance = {:.2f} px'.format(self.distance), anchor=tkinter.NW)
-        self.canvas.create_text(0.0, 20.0, fill='blue', text='Scale = {:.2f} px'.format(self.scale), anchor=tkinter.NW)
-        self.canvas.create_text(0.0, 40.0, fill='blue', text='Camera.x = {:.2f}'.format(self.camera[0]), anchor=tkinter.NW)
-        self.canvas.create_text(0.0, 60.0, fill='blue', text='Camera.y = {:.2f}'.format(self.camera[1]), anchor=tkinter.NW)
-        self.canvas.create_text(0.0, 80.0, fill='blue', text='Camera.z = {:.2f}'.format(self.camera[2]), anchor=tkinter.NW)
-        self.canvas.create_text(0.0, 100.0, fill='blue', text='Rotate.x = {:.2f}'.format(self.rotate[0]), anchor=tkinter.NW)
-        self.canvas.create_text(0.0, 120.0, fill='blue', text='Rotate.y = {:.2f}'.format(self.rotate[1]), anchor=tkinter.NW)
-        self.canvas.create_text(0.0, 140.0, fill='blue', text='Rotate.z = {:.2f}'.format(self.rotate[2]), anchor=tkinter.NW)
+        self.canvas.create_text(0.0, 0.0, fill='blue', text='Scale = {:.2f} px'.format(self.scale), anchor=tkinter.NW)
+        self.canvas.create_text(0.0, 20.0, fill='blue', text='Distance = {:.2f} px'.format(self.distance), anchor=tkinter.NW)
         # for k, coordinate in relatives.items():
         #     self.canvas.create_text(*coordinate, fill='blue', text=k)
         for p, q in self.lines:
@@ -66,22 +54,28 @@ class Space:
         del self.move_evrec
     def motion(self, event):
         if event.state & 0x100: # turn
-            ax, ay, bx, by, sinz, cosz = event.x - self.center_x, event.y - self.center_y, self.turn_evrec.x - self.center_x, self.turn_evrec.y - self.center_y, math.sin(self.rotate[2]), math.cos(self.rotate[2])
-            self.rotate += numpy.array([math.atan((by * cosz + bx * sinz) / self.distance) - math.atan((ay * cosz + ax * sinz) / self.distance), math.atan((bx * cosz - by * sinz) / self.distance) - math.atan((ax * cosz - ay * sinz) / self.distance), 0.0])
+            dx, dy = event.x - self.turn_evrec.x, event.y - self.turn_evrec.y
+            ds = math.sqrt(dx ** 2 + dy ** 2)
+            nx, ny = -dy / ds, dx / ds
+            alpha = ds / self.distance
+            n = numpy.array([[nx, ny, 0.0]])
+            N = numpy.array([[0.0, 0.0, ny], [0.0, 0.0, -nx], [-ny, nx, 0.0]])
+            self.matrix = (math.cos(alpha) * numpy.eye(3) + (1 - math.cos(alpha)) * n * n.T + math.sin(alpha) * N).dot(self.matrix)
             self.turn_evrec = event
         if event.state & 0x400: # tilt
             ax, ay, bx, by = event.x - self.center_x, event.y - self.center_y, self.tilt_evrec.x - self.center_x, self.tilt_evrec.y - self.center_y
-            self.rotate += numpy.array([0.0, 0.0, (ax * by - ay * bx) / (ax * bx + ay * by)])
+            asbs = math.sqrt(ax ** 2 + ay ** 2) * math.sqrt(bx ** 2 + by ** 2)
+            sina, cosa = (ax * by - ay * bx) / asbs, (ax * bx + ay * by) / asbs
+            self.matrix = numpy.array([[cosa, sina, 0.0], [-sina, cosa, 0.0], [0.0, 0.0, 1.0]]).dot(self.matrix)
             self.tilt_evrec = event
         if event.state & 0x200: # move
-            dx, dy = event.x - self.move_evrec.x, event.y - self.move_evrec.y
-            self.camera -= numpy.linalg.inv(self.get_mat()).dot(numpy.array([dx / self.scale, dy / self.scale, 0.0]))
+            self.camera -= numpy.linalg.inv(self.matrix).dot(numpy.array([(event.x - self.move_evrec.x) / self.scale, (event.y - self.move_evrec.y) / self.scale, 0.0]))
             self.move_evrec = event
         self.refresh()
     def wheel(self, event):
         delta = event.delta or 1080 - event.num * 240
         if event.state & 0x200: # move forward/backward
-            self.camera += numpy.linalg.inv(self.get_mat()).dot(numpy.array([0.0, 0.0, delta / self.scale]))
+            self.camera += numpy.linalg.inv(self.matrix).dot(numpy.array([0.0, 0.0, delta / self.scale]))
         else: # zoom in/out
             self.distance *= (4800 + delta) / (4800 - delta)
         self.refresh()
