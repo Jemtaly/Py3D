@@ -2,12 +2,12 @@
 import tkinter, numpy, math
 class Camera:
     def __init__(self):
-        self.position = numpy.array([0.0, 0.0, 0.0])
+        self.coordinate = numpy.array([0.0, 0.0, 0.0])
         self.matrix = numpy.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]])
     def transform(self, absolute):
-        return self.matrix.dot(absolute - self.position)
+        return self.matrix.dot(absolute - self.coordinate)
     def move(self, ds):
-        self.position -= numpy.linalg.inv(self.matrix).dot(ds)
+        self.coordinate -= numpy.linalg.inv(self.matrix).dot(ds)
     def rotate(self, th):
         alpha = numpy.linalg.norm(th)
         if alpha:
@@ -16,7 +16,7 @@ class Camera:
             N = numpy.array([[0.0, -nz, ny], [nz, 0.0, -nx], [-ny, nx, 0.0]])
             self.matrix = (math.cos(alpha) * numpy.eye(3) + (1 - math.cos(alpha)) * n * n.T + math.sin(alpha) * N).dot(self.matrix)
 class Space:
-    def __init__(self, points={}, lines=set(), scale=120.0, distance=720.0):
+    def __init__(self, points = {}, lines = set(), scale = 120.0, distance = 720.0):
         self.points = points
         self.lines = lines
         self.camera = Camera()
@@ -25,7 +25,7 @@ class Space:
     def start(self):
         self.tk = tkinter.Tk()
         self.canvas = tkinter.Canvas(self.tk)
-        self.canvas.pack(fill=tkinter.BOTH, expand=True)
+        self.canvas.pack(fill = tkinter.BOTH, expand = True)
         self.canvas.bind('<ButtonPress-2>', self.move_press)
         self.canvas.bind('<ButtonPress-1>', self.turn_press)
         self.canvas.bind('<ButtonPress-3>', self.tilt_press)
@@ -41,19 +41,19 @@ class Space:
         self.canvas.bind('<Configure>', self.configure)
         self.tk.mainloop()
     def refresh(self):
-        projections = {}
+        positions = {}
         for k, absolute in self.points.items():
             relative = self.camera.transform(absolute)
             if relative[2] > 0:
-                projections[k] = self.cx + relative[0] / relative[2] * self.distance, self.cy + relative[1] / relative[2] * self.distance
+                positions[k] = self.cx + relative[0] / relative[2] * self.distance, self.cy + relative[1] / relative[2] * self.distance
         self.canvas.delete(tkinter.ALL)
-        self.canvas.create_text(0.0, 0.0, fill='blue', text='Scale = {:.2f} px'.format(self.scale), anchor=tkinter.NW)
-        self.canvas.create_text(0.0, 20.0, fill='blue', text='Distance = {:.2f} px'.format(self.distance), anchor=tkinter.NW)
+        self.canvas.create_text(0.0, 0.0, fill = 'blue', text = 'Scale = {:.2f} px'.format(self.scale), anchor = tkinter.NW)
+        self.canvas.create_text(0.0, 20.0, fill = 'blue', text = 'Distance = {:.2f} px'.format(self.distance), anchor = tkinter.NW)
         # for k, coordinate in relatives.items():
-        #     self.canvas.create_text(*coordinate, fill='blue', text=k)
+        #     self.canvas.create_text(*coordinate, fill = 'blue', text = k)
         for p, q in self.lines:
-            if p in projections and q in projections:
-                self.canvas.create_line(*projections[p], *projections[q])
+            if p in positions and q in positions:
+                self.canvas.create_line(*positions[p], *positions[q])
     def move_press(self, event):
         self.move_evrec = event
     def turn_press(self, event):
@@ -82,9 +82,9 @@ class Space:
         self.refresh()
     def wheel(self, event):
         delta = event.delta or 1080 - event.num * 240
-        if event.state & 0x200: # move forward/backward
+        if event.state & 0x200: # move forward / move backward
             self.camera.move(numpy.array([0.0, 0.0, -delta / self.scale]))
-        else: # zoom in/out
+        else: # zoom in / zoom out
             self.distance = (4800 + delta) / (4800 - delta) * self.distance
         self.refresh()
     def configure(self, event):
@@ -93,7 +93,7 @@ class Space:
 def main():
     import argparse, sys
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+    parser.add_argument('file', nargs = '?', type = argparse.FileType('r'), default = sys.stdin)
     args = parser.parse_args()
     ps = {}
     ls = set()
@@ -105,12 +105,12 @@ def main():
         if label == 'v':
             ps['V' + str(len(ps) + 1)] = numpy.array([float(vals[0]), float(vals[1]), float(vals[2])])
         elif label == 'p':
-            ls.add(tuple(sorted(('V' + vals[0], 'V' + vals[0]))))
+            ls.add(('V' + vals[0], 'V' + vals[0]))
         elif label == 'l':
-            ls.add(tuple(sorted(('V' + vals[0], 'V' + vals[1]))))
+            ls.add(('V' + vals[0], 'V' + vals[1]))
         elif label == 'f':
             for i in range(len(vals)):
-                ls.add(tuple(sorted(('V' + vals[i].split('/')[0], 'V' + vals[i - 1].split('/')[0]))))
-    Space(points=ps, lines=ls).start()
+                ls.add(('V' + vals[i].split('/')[0], 'V' + vals[i - 1].split('/')[0]))
+    Space(points = ps, lines = {tuple(sorted(l)) for l in ls}).start()
 if __name__ == '__main__':
     main()
