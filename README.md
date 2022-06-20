@@ -1,8 +1,8 @@
 # Tk3D
 
-A 3D viewer based on the tkinter library implemented in python, with .obj file suppoerted.
+A 3D viewer implemented in python, with .obj file suppoerted.
 
-基于 Python 的 Tkinter 库实现的 3D 查看器，支持读取 .obj 格式文件。
+基于 Python 实现的 3D 查看器，支持读取 .obj 格式文件。
 
 ![screenshot](/screenshot.gif)
 
