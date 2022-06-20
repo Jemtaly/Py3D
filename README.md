@@ -9,7 +9,7 @@ A 3D viewer implemented in python, with .obj file suppoerted.
 ## Usage
 
 ```sh
-python3 tk3d.py test.obj
+python3 tk3d.py your_obj_file.obj
 ```
 
 ## Operation
