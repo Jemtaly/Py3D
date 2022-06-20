@@ -16,7 +16,8 @@ python3 tk3d.py test.obj
 
 | Operation | Usage |
 | --- | --- |
-| Left Button | Rotate the view |
-| Middle Button | Move the camera (scroll the wheel while middle button is pressed to move forward/backward) |
-| Right Button | Rotate the screen |
-| Mouse Wheel | Zoom in/out |
+| Left button | Rotate the view. |
+| Middle button | Move the camera. |
+| Right button | Rotate the screen. |
+| Mouse wheel | Zoom in/out. |
+| Mouse wheel while middle button is pressed | Move forward/backward. |
