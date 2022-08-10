@@ -16,79 +16,85 @@ class Camera:
             N = numpy.array([[0.0, -nz, ny], [nz, 0.0, -nx], [-ny, nx, 0.0]])
             self.matrix = (math.cos(alpha) * numpy.eye(3) + (1 - math.cos(alpha)) * n * n.T + math.sin(alpha) * N).dot(self.matrix)
 class Space:
-    def __init__(self, points = {}, lines = set(), scale = 120.0, distance = 720.0):
+    def __init__(self, points = {}, lines = set()):
+        self.camera = Camera()
         self.points = points
         self.lines = lines
-        self.camera = Camera()
-        self.scale = scale # number of pixels corresponding to each unit length in the space
-        self.distance = distance # number of pixels between the viewpoint and the projection plane
     def start(self):
         self.tk = tkinter.Tk()
         self.canvas = tkinter.Canvas(self.tk)
         self.canvas.pack(fill = tkinter.BOTH, expand = True)
-        self.canvas.bind('<ButtonPress-2>', self.move_press)
-        self.canvas.bind('<ButtonPress-1>', self.turn_press)
-        self.canvas.bind('<ButtonPress-3>', self.tilt_press)
-        self.canvas.bind('<ButtonRelease-2>', self.move_release)
-        self.canvas.bind('<ButtonRelease-1>', self.turn_release)
-        self.canvas.bind('<ButtonRelease-3>', self.tilt_release)
-        self.canvas.bind('<B2-Motion>', self.motion)
-        self.canvas.bind('<B1-Motion>', self.motion)
-        self.canvas.bind('<B3-Motion>', self.motion)
+        self.canvas.bind('<ButtonPress-1>', self.turn_start)
+        self.canvas.bind('<ButtonPress-3>', self.tilt_start)
+        self.canvas.bind('<ButtonPress-2>', self.move_start)
+        self.canvas.bind('<ButtonRelease-1>', self.turn_end)
+        self.canvas.bind('<ButtonRelease-3>', self.tilt_end)
+        self.canvas.bind('<ButtonRelease-2>', self.move_end)
+        self.canvas.bind('<B1-Motion>', self.turn)
+        self.canvas.bind('<B3-Motion>', self.tilt)
+        self.canvas.bind('<B2-Motion>', self.move)
         self.canvas.bind('<Button-4>', self.wheel) # for unix
         self.canvas.bind('<Button-5>', self.wheel) # for unix
         self.canvas.bind('<MouseWheel>', self.wheel) # for windows
         self.canvas.bind('<Configure>', self.configure)
+        self.dist = 600.0 # number of pixels between the viewpoint and the projection plane
+        self.size = 100.0 # number of pixels corresponding to each unit length in the space
+        self.dist_scaler = tkinter.Scale(self.canvas, from_ = 600.0, to = 6000.0, orient = tkinter.HORIZONTAL, label = 'View', command = self.dist_change)
+        self.size_scaler = tkinter.Scale(self.canvas, from_ = 100.0, to = 1000.0, orient = tkinter.HORIZONTAL, label = 'Size', command = self.size_change)
+        self.dist_scaler.pack(side = tkinter.BOTTOM, anchor = tkinter.NE)
+        self.size_scaler.pack(side = tkinter.BOTTOM, anchor = tkinter.NE)
         self.tk.mainloop()
     def refresh(self):
         positions = {}
         for k, absolute in self.points.items():
             relative = self.camera.transform(absolute)
             if relative[2] > 0:
-                positions[k] = self.cx + relative[0] / relative[2] * self.distance, self.cy + relative[1] / relative[2] * self.distance
+                positions[k] = self.cx + relative[0] / relative[2] * self.dist, self.cy + relative[1] / relative[2] * self.dist
         self.canvas.delete(tkinter.ALL)
-        self.canvas.create_text(0.0, 0.0, fill = 'blue', text = 'Scale = {:.2f} px'.format(self.scale), anchor = tkinter.NW)
-        self.canvas.create_text(0.0, 20.0, fill = 'blue', text = 'Distance = {:.2f} px'.format(self.distance), anchor = tkinter.NW)
         # for k, coordinate in relatives.items():
         #     self.canvas.create_text(*coordinate, fill = 'blue', text = k)
         for p, q in self.lines:
             if p in positions and q in positions:
                 self.canvas.create_line(*positions[p], *positions[q])
-    def move_press(self, event):
-        self.move_evrec = event
-    def turn_press(self, event):
+    def size_change(self, value):
+        self.size = float(value)
+        self.refresh()
+    def dist_change(self, value):
+        self.dist = float(value)
+        self.refresh()
+    def turn_start(self, event):
         self.turn_evrec = event
-    def tilt_press(self, event):
+    def tilt_start(self, event):
         self.tilt_evrec = event
-    def move_release(self, event):
-        del self.move_evrec
-    def turn_release(self, event):
+    def move_start(self, event):
+        self.move_evrec = event
+    def turn_end(self, event):
         del self.turn_evrec
-    def tilt_release(self, event):
+    def tilt_end(self, event):
         del self.tilt_evrec
-    def motion(self, event):
-        if event.state & 0x200: # move
-            dx, dy = event.x - self.move_evrec.x, event.y - self.move_evrec.y
-            self.camera.move(numpy.array([dx / self.scale, dy / self.scale, 0.0]))
-            self.move_evrec = event
-        if event.state & 0x100: # turn
-            dx, dy = event.x - self.turn_evrec.x, event.y - self.turn_evrec.y
-            self.camera.rotate(numpy.array([-dy / self.distance, dx / self.distance, 0.0]))
-            self.turn_evrec = event
-        if event.state & 0x400: # tilt
-            bx, by, ax, ay = event.x - self.cx, event.y - self.cy, self.tilt_evrec.x - self.cx, self.tilt_evrec.y - self.cy
-            self.camera.rotate(numpy.array([0.0, 0.0, math.atan2(ax * by - ay * bx, ax * bx + ay * by)]))
-            self.tilt_evrec = event
+    def move_end(self, event):
+        del self.move_evrec
+    def turn(self, event):
+        dx, dy = event.x - self.turn_evrec.x, event.y - self.turn_evrec.y
+        self.camera.rotate(numpy.array([-dy / self.dist, dx / self.dist, 0.0]))
+        self.turn_evrec = event
+        self.refresh()
+    def tilt(self, event):
+        bx, by, ax, ay = event.x - self.cx, event.y - self.cy, self.tilt_evrec.x - self.cx, self.tilt_evrec.y - self.cy
+        self.camera.rotate(numpy.array([0.0, 0.0, math.atan2(ax * by - ay * bx, ax * bx + ay * by)]))
+        self.tilt_evrec = event
+        self.refresh()
+    def move(self, event):
+        dx, dy = event.x - self.move_evrec.x, event.y - self.move_evrec.y
+        self.camera.move(numpy.array([dx / self.size, dy / self.size, 0.0]))
+        self.move_evrec = event
         self.refresh()
     def wheel(self, event):
         delta = event.delta or 1080 - event.num * 240
-        if event.state & 0x200: # move forward / move backward
-            self.camera.move(numpy.array([0.0, 0.0, -delta / self.scale]))
-        else: # zoom in / zoom out
-            self.distance = (4800 + delta) / (4800 - delta) * self.distance
+        self.camera.move(numpy.array([0.0, 0.0, -delta / self.size]))
         self.refresh()
     def configure(self, event):
-        self.cx, self.cy = 0.5 * event.width, 0.5 * event.height
+        self.cx, self.cy = event.width / 2, event.height / 2
         self.refresh()
 def main():
     import argparse, sys
