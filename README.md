@@ -19,5 +19,4 @@ python3 tk3d.py your_obj_file.obj
 | Left button | Rotate the view. |
 | Middle button | Move the camera. |
 | Right button | Rotate the screen. |
-| Mouse wheel | Zoom in/out. |
-| Mouse wheel while middle button is pressed | Move forward/backward. |
+| Mouse wheel | Move forward/backward. |
