@@ -20,7 +20,7 @@ class Space:
         self.camera = Camera()
         self.points = points
         self.lines = lines
-    def start(self):
+    def run(self):
         self.tk = tkinter.Tk()
         self.canvas = tkinter.Canvas(self.tk)
         self.canvas.pack(fill = tkinter.BOTH, expand = True)
@@ -36,13 +36,15 @@ class Space:
         self.canvas.bind('<Button-4>', self.wheel) # for unix
         self.canvas.bind('<Button-5>', self.wheel) # for unix
         self.canvas.bind('<MouseWheel>', self.wheel) # for windows
-        self.canvas.bind('<Configure>', self.configure)
-        self.dist = 600.0 # number of pixels between the viewpoint and the projection plane
-        self.size = 100.0 # number of pixels corresponding to each unit length in the space
-        self.dist_scaler = tkinter.Scale(self.canvas, from_ = 600.0, to = 6000.0, orient = tkinter.HORIZONTAL, label = 'View', command = self.dist_change)
-        self.size_scaler = tkinter.Scale(self.canvas, from_ = 100.0, to = 1000.0, orient = tkinter.HORIZONTAL, label = 'Size', command = self.size_change)
-        self.dist_scaler.pack(side = tkinter.BOTTOM, anchor = tkinter.NE)
-        self.size_scaler.pack(side = tkinter.BOTTOM, anchor = tkinter.NE)
+        self.canvas.bind('<Configure>', self.config)
+        self.dist_var = tkinter.DoubleVar(value = 960.0) # number of pixels between the viewpoint and the projection plane
+        self.size_var = tkinter.DoubleVar(value = 160.0) # number of pixels corresponding to each unit length in the space
+        self.dist_scaler = tkinter.Scale(self.canvas, from_ = 600.0, to = 6000.0, length = 180, variable = self.dist_var, orient = tkinter.HORIZONTAL, label = 'Dist', command = self.dist_change)
+        self.size_scaler = tkinter.Scale(self.canvas, from_ = 100.0, to = 1000.0, length = 180, variable = self.size_var, orient = tkinter.HORIZONTAL, label = 'Size', command = self.size_change)
+        self.dist_scaler.pack(side = tkinter.BOTTOM, anchor = tkinter.SE)
+        self.size_scaler.pack(side = tkinter.BOTTOM, anchor = tkinter.SE)
+        self.dist = self.dist_var.get()
+        self.size = self.size_var.get()
         self.tk.mainloop()
     def refresh(self):
         positions = {}
@@ -51,17 +53,11 @@ class Space:
             if relative[2] > 0:
                 positions[k] = self.cx + relative[0] / relative[2] * self.dist, self.cy + relative[1] / relative[2] * self.dist
         self.canvas.delete(tkinter.ALL)
-        # for k, coordinate in relatives.items():
+        # for k, coordinate in positions.items():
         #     self.canvas.create_text(*coordinate, fill = 'blue', text = k)
         for p, q in self.lines:
             if p in positions and q in positions:
                 self.canvas.create_line(*positions[p], *positions[q])
-    def size_change(self, value):
-        self.size = float(value)
-        self.refresh()
-    def dist_change(self, value):
-        self.dist = float(value)
-        self.refresh()
     def turn_start(self, event):
         self.turn_evrec = event
     def tilt_start(self, event):
@@ -93,8 +89,14 @@ class Space:
         delta = event.delta or 1080 - event.num * 240
         self.camera.move(numpy.array([0.0, 0.0, -delta / self.size]))
         self.refresh()
-    def configure(self, event):
+    def config(self, event):
         self.cx, self.cy = event.width / 2, event.height / 2
+        self.refresh()
+    def dist_change(self, value):
+        self.dist = self.dist_var.get()
+        self.refresh()
+    def size_change(self, value):
+        self.size = self.size_var.get()
         self.refresh()
 def main():
     import argparse, sys
@@ -117,6 +119,6 @@ def main():
         elif label == 'f':
             for i in range(len(vals)):
                 ls.add(('V' + vals[i].split('/')[0], 'V' + vals[i - 1].split('/')[0]))
-    Space(points = ps, lines = {tuple(sorted(l)) for l in ls}).start()
+    Space(points = ps, lines = {tuple(sorted(l)) for l in ls}).run()
 if __name__ == '__main__':
     main()
