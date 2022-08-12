@@ -1,8 +1,30 @@
 #!/usr/bin/python3
-import tk3d, tkinter, numpy
+import tkinter, numpy, tk3d
 class Plot3D(tk3d.Tk3D):
+    def __init__(self):
+        tk3d.Tk3D.__init__(self)
+    def plot(self, cross):
+        xrange = numpy.linspace(self.xbeg_var.get(), self.xend_var.get(), self.xnum_var.get() + 1, endpoint = True)
+        yrange = numpy.linspace(self.ybeg_var.get(), self.yend_var.get(), self.ynum_var.get() + 1, endpoint = True)
+        func = eval('lambda x, y: ' + self.entry.get())
+        self.verts = {(x, y): numpy.array([x, y, func(x, y)]) for x in xrange for y in yrange}
+        self.lines = set()
+        if cross:
+            for x1, x2 in zip(xrange[:-1], xrange[1:]):
+                for y1, y2 in zip(yrange[:-1], yrange[1:]):
+                    self.lines.add(((x1, y1), (x2, y2)))
+                    self.lines.add(((x1, y2), (x2, y1)))
+        else:
+            for x1, x2 in zip(xrange[:-1], xrange[1:]):
+                for y1, y2 in zip(yrange[:-1], yrange[1:]):
+                    self.lines.add(((x1, y1), (x1, y2)))
+                    self.lines.add(((x2, y1), (x2, y2)))
+                    self.lines.add(((x1, y1), (x2, y1)))
+                    self.lines.add(((x1, y2), (x2, y2)))
+        self.refresh()
     def run(self):
         self.tk = tkinter.Tk()
+        self.tk.title('Plot3D')
         self.tk.minsize(800, 600)
         self.canvas = tkinter.Canvas(self.tk)
         self.canvas.pack(fill = tkinter.BOTH, expand = True)
@@ -23,55 +45,41 @@ class Plot3D(tk3d.Tk3D):
         self.frame_right.pack(side = tkinter.RIGHT, anchor = tkinter.N)
         self.dist_var = tkinter.DoubleVar(value = 960.0) # number of pixels between the viewpoint and the projection plane
         self.size_var = tkinter.DoubleVar(value = 160.0) # number of pixels corresponding to each unit length in the space
-        self.dist_scaler = tkinter.Scale(self.frame_right, from_ = 600.0, to = 6000.0, length = 180, variable = self.dist_var, orient = tkinter.HORIZONTAL, label = 'Dist', command = self.dist_change)
-        self.size_scaler = tkinter.Scale(self.frame_right, from_ = 100.0, to = 1000.0, length = 180, variable = self.size_var, orient = tkinter.HORIZONTAL, label = 'Size', command = self.size_change)
+        self.dist_scaler = tkinter.Scale(self.frame_right, from_ = 600.0, to = 6000.0, resolution = 60.0, length = 180, variable = self.dist_var, orient = tkinter.HORIZONTAL, label = 'Dist', command = self.dist_change)
+        self.size_scaler = tkinter.Scale(self.frame_right, from_ = 100.0, to = 1000.0, resolution = 10.0, length = 180, variable = self.size_var, orient = tkinter.HORIZONTAL, label = 'Size', command = self.size_change)
         self.dist_scaler.pack()
         self.size_scaler.pack()
         self.dist = self.dist_var.get()
         self.size = self.size_var.get()
         self.frame_left = tkinter.Frame(self.canvas)
         self.frame_left.pack(side = tkinter.LEFT, anchor = tkinter.N)
-        self.xstart_var = tkinter.DoubleVar(value = -10.0)
-        self.ystart_var = tkinter.DoubleVar(value = -10.0)
-        self.xend_var = tkinter.DoubleVar(value = 10.0)
-        self.yend_var = tkinter.DoubleVar(value = 10.0)
-        self.xstep_var = tkinter.DoubleVar(value = 0.1)
-        self.ystep_var = tkinter.DoubleVar(value = 0.1)
-        self.xstart_scaler = tkinter.Scale(self.frame_left, from_ = -10.0, to = 10.0, resolution = 0.1, length = 180, variable = self.xstart_var, orient = tkinter.HORIZONTAL, label = 'X start')
-        self.ystart_scaler = tkinter.Scale(self.frame_left, from_ = -10.0, to = 10.0, resolution = 0.1, length = 180, variable = self.ystart_var, orient = tkinter.HORIZONTAL, label = 'Y start')
-        self.xend_scaler = tkinter.Scale(self.frame_left, from_ = -10.0, to = 10.0, resolution = 0.1, length = 180, variable = self.xend_var, orient = tkinter.HORIZONTAL, label = 'X end')
-        self.yend_scaler = tkinter.Scale(self.frame_left, from_ = -10.0, to = 10.0, resolution = 0.1, length = 180, variable = self.yend_var, orient = tkinter.HORIZONTAL, label = 'Y end')
-        self.xstep_scaler = tkinter.Scale(self.frame_left, from_ = 0.1, to = 1.0, resolution = 0.01, length = 180, variable = self.xstep_var, orient = tkinter.HORIZONTAL, label = 'X step')
-        self.ystep_scaler = tkinter.Scale(self.frame_left, from_ = 0.1, to = 1.0, resolution = 0.01, length = 180, variable = self.ystep_var, orient = tkinter.HORIZONTAL, label = 'Y step')
-        self.xstart_scaler.pack()
-        self.ystart_scaler.pack()
+        self.xbeg_var = tkinter.DoubleVar(value = -10.0)
+        self.ybeg_var = tkinter.DoubleVar(value = -10.0)
+        self.xend_var = tkinter.DoubleVar(value = +10.0)
+        self.yend_var = tkinter.DoubleVar(value = +10.0)
+        self.xnum_var = tkinter.IntVar(value = 20)
+        self.ynum_var = tkinter.IntVar(value = 20)
+        self.xbeg_scaler = tkinter.Scale(self.frame_left, from_ = -10.0, to = +10.0, resolution = 0.1, length = 180, variable = self.xbeg_var, orient = tkinter.HORIZONTAL, label = 'X beg')
+        self.ybeg_scaler = tkinter.Scale(self.frame_left, from_ = -10.0, to = +10.0, resolution = 0.1, length = 180, variable = self.ybeg_var, orient = tkinter.HORIZONTAL, label = 'Y beg')
+        self.xend_scaler = tkinter.Scale(self.frame_left, from_ = -10.0, to = +10.0, resolution = 0.1, length = 180, variable = self.xend_var, orient = tkinter.HORIZONTAL, label = 'X end')
+        self.yend_scaler = tkinter.Scale(self.frame_left, from_ = -10.0, to = +10.0, resolution = 0.1, length = 180, variable = self.yend_var, orient = tkinter.HORIZONTAL, label = 'Y end')
+        self.xnum_scaler = tkinter.Scale(self.frame_left, from_ = 1, to = 100, length = 180, variable = self.xnum_var, orient = tkinter.HORIZONTAL, label = 'X num')
+        self.ynum_scaler = tkinter.Scale(self.frame_left, from_ = 1, to = 100, length = 180, variable = self.ynum_var, orient = tkinter.HORIZONTAL, label = 'Y num')
+        self.xbeg_scaler.pack()
+        self.ybeg_scaler.pack()
         self.xend_scaler.pack()
         self.yend_scaler.pack()
-        self.xstep_scaler.pack()
-        self.ystep_scaler.pack()
+        self.xnum_scaler.pack()
+        self.ynum_scaler.pack()
         self.frame_bottom = tkinter.Frame(self.tk)
         self.frame_bottom.pack(fill = tkinter.X)
         self.entry = tkinter.Entry(self.frame_bottom)
         self.entry.pack(side = tkinter.LEFT, expand = True, fill = tkinter.X)
-        self.button = tkinter.Button(self.frame_bottom, text = 'Plot', command = self.plot)
-        self.button.pack(side = tkinter.RIGHT)
+        self.cross = tkinter.Button(self.frame_bottom, text = 'Cross Plot', command = lambda: self.plot(1))
+        self.block = tkinter.Button(self.frame_bottom, text = 'Block Plot', command = lambda: self.plot(0))
+        self.cross.pack(side = tkinter.LEFT)
+        self.block.pack(side = tkinter.LEFT)
         self.tk.mainloop()
-    def plot(self):
-        xrange = numpy.arange(self.xstart_var.get(), self.xend_var.get(), self.xstep_var.get())
-        yrange = numpy.arange(self.ystart_var.get(), self.yend_var.get(), self.ystep_var.get())
-        self.points = {hash((x, y)): numpy.array([x, y, eval(self.entry.get())]) for x in xrange for y in yrange}
-        self.lines = set()
-        for x1, x2 in zip(xrange[:-1], xrange[1:]):
-            for y1, y2 in zip(yrange[:-1], yrange[1:]):
-                self.lines.add((hash((x1, y1)), hash((x2, y1))))
-                self.lines.add((hash((x1, y1)), hash((x1, y2))))
-        y = yrange[-1]
-        for x1, x2 in zip(xrange[:-1], xrange[1:]):
-            self.lines.add((hash((x1, y)), hash((x2, y))))
-        x = xrange[-1]
-        for y1, y2 in zip(yrange[:-1], yrange[1:]):
-            self.lines.add((hash((x, y1)), hash((x, y2))))
-        self.refresh()
 def main():
     Plot3D().run()
 if __name__ == '__main__':
