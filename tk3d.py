@@ -15,51 +15,47 @@ class Camera:
             n = numpy.array([[+nx, +ny, +nz]])
             N = numpy.array([[0.0, -nz, +ny], [+nz, 0.0, -nx], [-ny, +nx, 0.0]])
             self.matrix = (math.cos(alpha) * numpy.eye(3) + (1 - math.cos(alpha)) * n * n.T + math.sin(alpha) * N).dot(self.matrix)
-class Tk3D:
-    def __init__(self, verts = {}, lines = set()):
+class Camvas(tkinter.Canvas):
+    def __init__(self, master, verts = {}, lines = set()):
+        super().__init__(master)
+        self.bind('<ButtonPress-1>', self.turn_start)
+        self.bind('<ButtonPress-3>', self.tilt_start)
+        self.bind('<ButtonPress-2>', self.move_start)
+        self.bind('<ButtonRelease-1>', self.turn_end)
+        self.bind('<ButtonRelease-3>', self.tilt_end)
+        self.bind('<ButtonRelease-2>', self.move_end)
+        self.bind('<B1-Motion>', self.turn)
+        self.bind('<B3-Motion>', self.tilt)
+        self.bind('<B2-Motion>', self.move)
+        self.bind('<Button-4>', self.wheel) # for unix
+        self.bind('<Button-5>', self.wheel) # for unix
+        self.bind('<MouseWheel>', self.wheel) # for windows
+        self.bind('<Configure>', self.config)
+        self.frame = tkinter.Frame(self)
+        self.frame.pack(side = tkinter.RIGHT, anchor = tkinter.N)
+        self.dist_var = tkinter.DoubleVar(value = 960.0) # number of pixels between the viewpoint and the projection plane
+        self.size_var = tkinter.DoubleVar(value = 160.0) # number of pixels corresponding to each unit length in the space
+        self.dist_scaler = tkinter.Scale(self.frame, from_ = 600.0, to = 6000.0, resolution = 60.0, length = 180, variable = self.dist_var, orient = tkinter.HORIZONTAL, label = 'Dist', command = self.dist_change)
+        self.size_scaler = tkinter.Scale(self.frame, from_ = 100.0, to = 1000.0, resolution = 10.0, length = 180, variable = self.size_var, orient = tkinter.HORIZONTAL, label = 'Size', command = self.size_change)
+        self.dist_scaler.pack()
+        self.size_scaler.pack()
+        self.dist = self.dist_var.get()
+        self.size = self.size_var.get()
         self.camera = Camera()
         self.verts = verts
         self.lines = lines
-    def run(self):
-        self.tk = tkinter.Tk()
-        self.tk.title('Tk3D')
-        self.tk.minsize(800, 600)
-        self.canvas = tkinter.Canvas(self.tk)
-        self.canvas.pack(fill = tkinter.BOTH, expand = True)
-        self.canvas.bind('<ButtonPress-1>', self.turn_start)
-        self.canvas.bind('<ButtonPress-3>', self.tilt_start)
-        self.canvas.bind('<ButtonPress-2>', self.move_start)
-        self.canvas.bind('<ButtonRelease-1>', self.turn_end)
-        self.canvas.bind('<ButtonRelease-3>', self.tilt_end)
-        self.canvas.bind('<ButtonRelease-2>', self.move_end)
-        self.canvas.bind('<B1-Motion>', self.turn)
-        self.canvas.bind('<B3-Motion>', self.tilt)
-        self.canvas.bind('<B2-Motion>', self.move)
-        self.canvas.bind('<Button-4>', self.wheel) # for unix
-        self.canvas.bind('<Button-5>', self.wheel) # for unix
-        self.canvas.bind('<MouseWheel>', self.wheel) # for windows
-        self.canvas.bind('<Configure>', self.config)
-        self.dist_var = tkinter.DoubleVar(value = 960.0) # number of pixels between the viewpoint and the projection plane
-        self.size_var = tkinter.DoubleVar(value = 160.0) # number of pixels corresponding to each unit length in the space
-        self.dist_scaler = tkinter.Scale(self.canvas, from_ = 600.0, to = 6000.0, resolution = 60.0, length = 180, variable = self.dist_var, orient = tkinter.HORIZONTAL, label = 'Dist', command = self.dist_change)
-        self.size_scaler = tkinter.Scale(self.canvas, from_ = 100.0, to = 1000.0, resolution = 10.0, length = 180, variable = self.size_var, orient = tkinter.HORIZONTAL, label = 'Size', command = self.size_change)
-        self.dist_scaler.pack(anchor = tkinter.E)
-        self.size_scaler.pack(anchor = tkinter.E)
-        self.dist = self.dist_var.get()
-        self.size = self.size_var.get()
-        self.tk.mainloop()
     def refresh(self):
         positions = {}
         for k, absolute in self.verts.items():
             relative = self.camera.transform(absolute)
             if relative[2] < 0:
                 positions[k] = self.cx - relative[0] / relative[2] * self.dist, self.cy + relative[1] / relative[2] * self.dist
-        self.canvas.delete(tkinter.ALL)
+        self.delete(tkinter.ALL)
         # for k, centre in positions.items():
-        #     self.canvas.create_text(*centre, fill = 'blue', text = k)
+        #     self.create_text(*centre, fill = 'blue', text = k)
         for p, q in self.lines:
             if p in positions and q in positions:
-                self.canvas.create_line(*positions[p], *positions[q])
+                self.create_line(*positions[p], *positions[q])
     def turn_start(self, event):
         self.turn_evrec = event
     def tilt_start(self, event):
@@ -100,27 +96,7 @@ class Tk3D:
     def size_change(self, value):
         self.size = self.size_var.get()
         self.refresh()
-def main():
-    import argparse, sys
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file', type = argparse.FileType('r'), default = sys.stdin)
-    args = parser.parse_args()
-    ps = {}
-    ls = set()
-    for line in args.file:
-        vals = line.split()
-        if not vals:
-            continue
-        label, *vals = vals
-        if label == 'v':
-            ps['V' + str(len(ps) + 1)] = numpy.array([float(vals[0]), float(vals[1]), float(vals[2])])
-        elif label == 'p':
-            ls.add(('V' + vals[0], 'V' + vals[0]))
-        elif label == 'l':
-            ls.add(('V' + vals[0], 'V' + vals[1]))
-        elif label == 'f':
-            for i in range(len(vals)):
-                ls.add(('V' + vals[i].split('/')[0], 'V' + vals[i - 1].split('/')[0]))
-    Tk3D(verts = ps, lines = {tuple(sorted(l)) for l in ls}).run()
-if __name__ == '__main__':
-    main()
+    def reset(self, verts = {}, lines = set()):
+        self.verts = verts
+        self.lines = lines
+        self.refresh()
