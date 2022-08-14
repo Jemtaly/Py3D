@@ -15,7 +15,7 @@ A 3D engine based on python, including a 3D model viewer and a 3D function image
 | Right button | Rotate the screen. |
 | Mouse wheel | Move forward/backward. |
 
-## tk3d.py
+## ObjV3D
 
 A simple 3D model viewer that supports reading .obj format files.
 
@@ -26,10 +26,10 @@ A simple 3D model viewer that supports reading .obj format files.
 ### Usage
 
 ```sh
-python3 tk3d.py your_obj_file.obj
+python3 objv3d.py your_obj_file.obj
 ```
 
-## plot3d.py
+## Plot3D
 
 A 3D function image rendering tool.
 
