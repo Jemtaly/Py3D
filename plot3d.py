@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 import tkinter, numpy, tk3d
 def main():
-    tkroot = tkinter.Tk()
-    tkroot.title('TkPlot3D')
-    tkroot.minsize(800, 600)
-    camvas = tk3d.Camvas(tkroot)
+    wroot = tkinter.Tk()
+    wroot.title('TkPlot3D')
+    wroot.minsize(800, 600)
+    camvas = tk3d.Camvas(wroot)
     camvas.pack(fill = tkinter.BOTH, expand = True)
     def plot(cross):
         xrange = numpy.linspace(xmin_var.get(), xmax_var.get(), xinr_var.get() + 1, endpoint = True)
@@ -26,7 +26,7 @@ def main():
                     ls.add(((x1, y2), (x2, y2)))
         camvas.reset(verts = vs, lines = ls)
     range_frame = tkinter.Frame(camvas)
-    range_frame.pack(side = tkinter.LEFT, anchor = tkinter.N)
+    range_frame.pack(anchor = tkinter.NW)
     xmin_var = tkinter.DoubleVar(value = -10.0)
     ymin_var = tkinter.DoubleVar(value = -10.0)
     xmax_var = tkinter.DoubleVar(value = +10.0)
@@ -45,7 +45,7 @@ def main():
     ymax_scaler.pack()
     xinr_scaler.pack()
     yinr_scaler.pack()
-    input_frame = tkinter.Frame(tkroot)
+    input_frame = tkinter.Frame(wroot)
     input_frame.pack(fill = tkinter.X)
     entry = tkinter.Entry(input_frame)
     cross = tkinter.Button(input_frame, text = 'Cross Plot', command = lambda: plot(1))
@@ -53,6 +53,6 @@ def main():
     entry.pack(side = tkinter.LEFT, expand = True, fill = tkinter.X)
     cross.pack(side = tkinter.LEFT)
     block.pack(side = tkinter.LEFT)
-    tkroot.mainloop()
+    wroot.mainloop()
 if __name__ == '__main__':
     main()

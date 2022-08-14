@@ -21,11 +21,10 @@ def main():
         elif label == 'f':
             for i in range(len(vals)):
                 ls.add(('V' + vals[i].split('/')[0], 'V' + vals[i - 1].split('/')[0]))
-    tkroot = tkinter.Tk()
-    tkroot.title('TkObjV3D')
-    tkroot.minsize(800, 600)
-    camvas = tk3d.Camvas(tkroot, verts = vs, lines = ls)
-    camvas.pack(fill = tkinter.BOTH, expand = True)
-    tkroot.mainloop()
+    root = tkinter.Tk()
+    root.title('TkObjV3D')
+    root.minsize(800, 600)
+    tk3d.Camvas(root, verts = vs, lines = ls).pack(fill = tkinter.BOTH, expand = True)
+    root.mainloop()
 if __name__ == '__main__':
     main()
