@@ -21,7 +21,7 @@ A simple 3D model viewer that supports reading .obj format files.
 
 一个简单的 3D 模型查看器，支持读取 .obj 格式文件
 
-![screenshot](/screenshots/tk3d.png)
+![screenshot](/screenshots/objv3d.png)
 
 ### Usage
 
