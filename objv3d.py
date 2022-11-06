@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 import tkinter, numpy, tk3d
 def main():
-    import argparse, sys
+    import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', type = argparse.FileType('r'), default = sys.stdin)
+    parser.add_argument('file', type = argparse.FileType('r'))
     args = parser.parse_args()
     vs = {}
     ls = set()
@@ -21,11 +21,12 @@ def main():
         elif label == 'f':
             for i in range(len(vals)):
                 ls.add(('V' + vals[i].split('/')[0], 'V' + vals[i - 1].split('/')[0]))
+    args.file.close()
     tkroot = tkinter.Tk()
     tkroot.title('TkObjV3D')
     tkroot.minsize(800, 600)
-    xspace = tk3d.XSpace(verts = vs, lines = ls)
-    camvas = tk3d.Camvas(tkroot, xspace)
+    objspc = tk3d.ObjSpc(verts = vs, lines = ls)
+    camvas = tk3d.Camvas(tkroot, objspc)
     camvas.pack(fill = tkinter.BOTH, expand = True)
     tkroot.mainloop()
 if __name__ == '__main__':

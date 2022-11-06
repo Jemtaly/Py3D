@@ -1,6 +1,5 @@
-#!/usr/bin/python3
 import tkinter, numpy, math, copy
-class XSpace:
+class ObjSpc:
     def __init__(self, verts = {}, lines = set()):
         self.verts = copy.deepcopy(verts)
         self.lines = copy.deepcopy(lines)
@@ -16,7 +15,7 @@ class XSpace:
     def remove_camvas(self, camvas):
         self.camvass.remove(camvas)
 class Camvas(tkinter.Canvas):
-    def __init__(self, master, xspace, coordn = numpy.zeros(3), matrix = numpy.eye(3), dist = 960.0, size = 160.0):
+    def __init__(self, master, objspc, coordn = numpy.zeros(3), matrix = numpy.eye(3), dist = 960.0, size = 160.0):
         assert numpy.allclose(matrix @ matrix.T, numpy.eye(3))
         assert dist in numpy.arange(600.0, 6000.0, 60.0) or dist == 6000.0
         assert size in numpy.arange(100.0, 1000.0, 10.0) or size == 1000.0
@@ -46,21 +45,21 @@ class Camvas(tkinter.Canvas):
         self.size = self.size_var.get()
         self.coordn = coordn.copy()
         self.matrix = matrix.copy()
-        self.xspace = xspace
-        self.xspace.add_camvas(self)
+        self.objspc = objspc
+        self.objspc.add_camvas(self)
     def destroy(self):
         super().destroy()
-        self.xspace.remove_camvas(self)
+        self.objspc.remove_camvas(self)
     def refresh(self):
         positions = {}
-        for k, absolute in self.xspace.verts.items():
+        for k, absolute in self.objspc.verts.items():
             relative = self.matrix.dot(absolute - self.coordn)
             if relative[2] < 0:
                 positions[k] = self.centre[0] - relative[0] / relative[2] * self.dist, self.centre[1] + relative[1] / relative[2] * self.dist
         self.delete(tkinter.ALL)
         # for k, position in positions.items():
         #     self.create_text(*position, fill = 'blue', text = k)
-        for p, q in self.xspace.lines:
+        for p, q in self.objspc.lines:
             if p in positions and q in positions:
                 self.create_line(*positions[p], *positions[q])
     def turn_start(self, event):
