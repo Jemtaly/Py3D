@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-import tkinter, numpy, tk3d
 def main():
+    import tkinter, tkinter.messagebox, tk3d, numpy
     wroot = tkinter.Tk()
     wroot.title('TkPlot3D')
     wroot.minsize(800, 600)
@@ -28,26 +28,24 @@ def main():
     frame = tkinter.Frame(wroot)
     frame.pack(fill = tkinter.X)
     entry = tkinter.Entry(frame)
-    def plot(cross):
-        xrange = numpy.linspace(xmin_var.get(), xmax_var.get(), xinr_var.get() + 1, endpoint = True)
-        yrange = numpy.linspace(ymin_var.get(), ymax_var.get(), yinr_var.get() + 1, endpoint = True)
-        vs = {(x, y): numpy.array([x, y, eval(entry.get())], float) for x in xrange for y in yrange}
-        ls = set()
-        if cross:
-            for x1, x2 in zip(xrange[:-1], xrange[1:]):
-                for y1, y2 in zip(yrange[:-1], yrange[1:]):
-                    ls.add(((x1, y1), (x2, y2)))
-                    ls.add(((x1, y2), (x2, y1)))
+    def plot(mode):
+        xs = numpy.linspace(xmin_var.get(), xmax_var.get(), xinr_var.get() + 1, endpoint = True)
+        ys = numpy.linspace(ymin_var.get(), ymax_var.get(), yinr_var.get() + 1, endpoint = True)
+        try:
+            vs = {(x, y): numpy.array([x, y, eval(entry.get())], float) for x in xs for y in ys}
+        except Exception as e:
+            tkinter.messagebox.showerror(e.__class__.__name__, str(e))
+            return False
+        if mode:
+            lh = set(((x1, y0), (x2, y0)) for x1, x2 in zip(xs[:-1], xs[+1:]) for y0 in ys)
+            lv = set(((x0, y1), (x0, y2)) for y1, y2 in zip(ys[:-1], ys[+1:]) for x0 in xs)
         else:
-            for x1, x2 in zip(xrange[:-1], xrange[1:]):
-                for y1, y2 in zip(yrange[:-1], yrange[1:]):
-                    ls.add(((x1, y1), (x1, y2)))
-                    ls.add(((x2, y1), (x2, y2)))
-                    ls.add(((x1, y1), (x2, y1)))
-                    ls.add(((x1, y2), (x2, y2)))
-        objspc.reset(verts = vs, lines = ls)
-    cross = tkinter.Button(frame, text = 'Plotx', command = lambda: plot(1))
-    block = tkinter.Button(frame, text = 'Plot+', command = lambda: plot(0))
+            lh = set(((x1, y1), (x2, y2)) for x1, x2 in zip(xs[:-1], xs[+1:]) for y1, y2 in zip(ys[:-1], ys[+1:]))
+            lv = set(((x1, y2), (x2, y1)) for x1, x2 in zip(xs[:-1], xs[+1:]) for y1, y2 in zip(ys[:-1], ys[+1:]))
+        objspc.reset(verts = vs, lines = lh | lv)
+        return True
+    cross = tkinter.Button(frame, text = 'PlotA', command = lambda: plot(1))
+    block = tkinter.Button(frame, text = 'PlotB', command = lambda: plot(0))
     reset = tkinter.Button(frame, text = 'Clear', command = lambda: objspc.reset())
     entry.pack(side = tkinter.LEFT, expand = True, fill = tkinter.X)
     cross.pack(side = tkinter.LEFT)

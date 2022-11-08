@@ -48,8 +48,8 @@ class Camvas(tkinter.Canvas):
         self.objspc = objspc
         self.objspc.add_camvas(self)
     def destroy(self):
-        super().destroy()
         self.objspc.remove_camvas(self)
+        super().destroy()
     def refresh(self):
         positions = {}
         for k, absolute in self.objspc.verts.items():
