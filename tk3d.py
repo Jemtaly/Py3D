@@ -54,14 +54,21 @@ class Camvas(tkinter.Canvas):
         positions = {}
         for k, absolute in self.objspc.verts.items():
             relative = self.matrix.dot(absolute - self.coordn)
-            if relative[2] < 0:
-                positions[k] = self.centre[0] - relative[0] / relative[2] * self.dist, self.centre[1] + relative[1] / relative[2] * self.dist
+            positions[k] = relative[:2] / relative[2] * self.dist + self.centre, numpy.sign(relative[2])
         self.delete(tkinter.ALL)
-        # for k, position in positions.items():
-        #     self.create_text(*position, fill = 'blue', text = k)
         for p, q in self.objspc.lines:
-            if p in positions and q in positions:
-                self.create_line(*positions[p], *positions[q])
+            P, p = positions[p]
+            Q, q = positions[q]
+            if p + q == -2:
+                self.create_line(*P, *Q)
+            elif p - q == -2:
+                T = Q - P
+                Q = P - T / numpy.linalg.norm(T) * 1e+9
+                self.create_line(*P, *Q)
+            elif q - p == -2:
+                T = P - Q
+                P = Q - T / numpy.linalg.norm(T) * 1e+9
+                self.create_line(*Q, *P)
     def turn_start(self, event):
         self.turn_evrec = event
     def tilt_start(self, event):
@@ -75,15 +82,15 @@ class Camvas(tkinter.Canvas):
     def mvxy_end(self, event):
         del self.mvxy_evrec
     def turn(self, event):
-        rtx, rty = (self.turn_evrec.y - event.y) / self.dist, (self.turn_evrec.x - event.x) / self.dist
+        rtx, rty = (self.turn_evrec.y - event.y) / self.dist, (event.x - self.turn_evrec.x) / self.dist
         self.rota(numpy.array([rtx, rty, 0.0]))
         self.turn_evrec = event
     def tilt(self, event):
-        rtz = math.atan2(self.tilt_evrec.y - self.centre[1], self.tilt_evrec.x - self.centre[0]) - math.atan2(event.y - self.centre[1], event.x - self.centre[0])
+        rtz = math.atan2(event.y - self.centre[1], event.x - self.centre[0]) - math.atan2(self.tilt_evrec.y - self.centre[1], self.tilt_evrec.x - self.centre[0])
         self.rota(numpy.array([0.0, 0.0, rtz]))
         self.tilt_evrec = event
     def mvxy(self, event):
-        mvx, mvy = (self.mvxy_evrec.x - event.x) / self.size, (event.y - self.mvxy_evrec.y) / self.size
+        mvx, mvy = (event.x - self.mvxy_evrec.x) / self.size, (event.y - self.mvxy_evrec.y) / self.size
         self.move(numpy.array([mvx, mvy, 0.0]))
         self.mvxy_evrec = event
     def wheel(self, event):
@@ -95,13 +102,13 @@ class Camvas(tkinter.Canvas):
             nx, ny, nz = rt / alpha
             n = numpy.array([[+nx, +ny, +nz]])
             N = numpy.array([[0.0, -nz, +ny], [+nz, 0.0, -nx], [-ny, +nx, 0.0]])
-            self.matrix = (math.cos(alpha) * numpy.eye(3) + (1 - math.cos(alpha)) * n * n.T + math.sin(alpha) * N).dot(self.matrix)
+            self.matrix = (math.cos(alpha) * numpy.eye(3) + (1.0 - math.cos(alpha)) * n * n.T + math.sin(alpha) * N).dot(self.matrix)
         self.refresh()
     def move(self, mv):
         self.coordn += numpy.linalg.inv(self.matrix).dot(mv)
         self.refresh()
     def change(self, event):
-        self.centre = event.width / 2, event.height / 2
+        self.centre = numpy.array([event.width / 2, event.height / 2])
         self.refresh()
     def dist_change(self, value):
         self.dist = self.dist_var.get()
