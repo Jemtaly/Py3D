@@ -8,8 +8,7 @@ class ObjSpc:
         self.verts = copy.deepcopy(verts)
         self.lines = copy.deepcopy(lines)
         for camvas in self.camvass:
-            if hasattr(camvas, 'centre'):
-                camvas.refresh()
+            camvas.refresh()
     def add_camvas(self, camvas):
         self.camvass.add(camvas)
     def remove_camvas(self, camvas):
@@ -54,18 +53,18 @@ class Camvas(tkinter.Canvas):
         positions = {}
         for k, absolute in self.objspc.verts.items():
             relative = self.matrix.dot(absolute - self.coordn)
-            positions[k] = relative[:2] / relative[2] * self.dist + self.centre, numpy.sign(relative[2])
+            positions[k] = self.centre - relative[:2] / relative[2] * self.dist, numpy.sign(relative[2])
         self.delete(tkinter.ALL)
         for p, q in self.objspc.lines:
             P, p = positions[p]
             Q, q = positions[q]
-            if p + q == -2:
+            if p + q == 2:
                 self.create_line(*P, *Q)
-            elif p - q == -2:
+            elif p - q == 2:
                 T = Q - P
                 Q = P - T / numpy.linalg.norm(T) * 1e+9
                 self.create_line(*P, *Q)
-            elif q - p == -2:
+            elif q - p == 2:
                 T = P - Q
                 P = Q - T / numpy.linalg.norm(T) * 1e+9
                 self.create_line(*Q, *P)
@@ -82,7 +81,7 @@ class Camvas(tkinter.Canvas):
     def mvxy_end(self, event):
         del self.mvxy_evrec
     def turn(self, event):
-        rtx, rty = (self.turn_evrec.y - event.y) / self.dist, (event.x - self.turn_evrec.x) / self.dist
+        rtx, rty = (event.y - self.turn_evrec.y) / self.dist, (self.turn_evrec.x - event.x) / self.dist
         self.rota(numpy.array([rtx, rty, 0.0]))
         self.turn_evrec = event
     def tilt(self, event):
@@ -94,7 +93,7 @@ class Camvas(tkinter.Canvas):
         self.move(numpy.array([mvx, mvy, 0.0]))
         self.mvxy_evrec = event
     def wheel(self, event):
-        mvz = (0 - event.delta or event.num * 240 - 1080) / self.size
+        mvz = (event.delta or 1080 - event.num * 240) / self.size
         self.move(numpy.array([0.0, 0.0, mvz]))
     def rota(self, rt):
         alpha = numpy.linalg.norm(rt)
@@ -107,7 +106,7 @@ class Camvas(tkinter.Canvas):
     def move(self, mv):
         self.coordn += numpy.linalg.inv(self.matrix).dot(mv)
         self.refresh()
-    def change(self, event):
+    def change(self, event): # initialize
         self.centre = numpy.array([event.width / 2, event.height / 2])
         self.refresh()
     def dist_change(self, value):
