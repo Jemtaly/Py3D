@@ -81,11 +81,11 @@ class Camvas(tkinter.Canvas):
     def mvxy_end(self, event):
         del self.mvxy_evrec
     def turn(self, event):
-        rtx, rty = (event.y - self.turn_evrec.y) / self.dist, (self.turn_evrec.x - event.x) / self.dist
+        rtx, rty = (self.turn_evrec.y - event.y) / self.dist, (event.x - self.turn_evrec.x) / self.dist
         self.rota(numpy.array([rtx, rty, 0.0]))
         self.turn_evrec = event
     def tilt(self, event):
-        rtz = math.atan2(event.y - self.centre[1], event.x - self.centre[0]) - math.atan2(self.tilt_evrec.y - self.centre[1], self.tilt_evrec.x - self.centre[0])
+        rtz = math.atan2(self.tilt_evrec.y - self.centre[1], self.tilt_evrec.x - self.centre[0]) - math.atan2(event.y - self.centre[1], event.x - self.centre[0])
         self.rota(numpy.array([0.0, 0.0, rtz]))
         self.tilt_evrec = event
     def mvxy(self, event):
@@ -96,12 +96,14 @@ class Camvas(tkinter.Canvas):
         mvz = (event.delta or 1080 - event.num * 240) / self.size
         self.move(numpy.array([0.0, 0.0, mvz]))
     def rota(self, rt):
-        alpha = numpy.linalg.norm(rt)
-        if alpha:
-            nx, ny, nz = rt / alpha
-            n = numpy.array([[+nx, +ny, +nz]])
-            N = numpy.array([[0.0, -nz, +ny], [+nz, 0.0, -nx], [-ny, +nx, 0.0]])
-            self.matrix = (math.cos(alpha) * numpy.eye(3) + (1.0 - math.cos(alpha)) * n * n.T + math.sin(alpha) * N).dot(self.matrix)
+        half = numpy.linalg.norm(rt)
+        S, C = numpy.sin(half), numpy.cos(half)
+        x, y, z = rt / half if half else numpy.zeros(3)
+        self.matrix = numpy.array([
+            [x * x * (1 - C) + 1 * C, x * y * (1 - C) + z * S, x * z * (1 - C) - y * S],
+            [y * x * (1 - C) - z * S, y * y * (1 - C) + 1 * C, y * z * (1 - C) + x * S],
+            [z * x * (1 - C) + y * S, z * y * (1 - C) - x * S, z * z * (1 - C) + 1 * C],
+        ]).dot(self.matrix)
         self.refresh()
     def move(self, mv):
         self.coordn += numpy.linalg.inv(self.matrix).dot(mv)
