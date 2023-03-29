@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 def main():
     import tkinter, tk3d, numpy, argparse
-    prsr = argparse.ArgumentParser()
+    prsr = argparse.ArgumentParser(description = '3D Viewer for Wavefront OBJ Files')
     prsr.add_argument('file', type = argparse.FileType('r'))
     args = prsr.parse_args()
     vs = {}
