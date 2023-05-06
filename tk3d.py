@@ -1,4 +1,4 @@
-import tkinter, numpy, math, copy
+import tkinter, numpy, copy
 class ObjSpc:
     def __init__(self, verts = {}, lines = set()):
         self.verts = copy.deepcopy(verts)
@@ -53,21 +53,21 @@ class Camvas(tkinter.Canvas):
         positions = {}
         for k, absolute in self.objspc.verts.items():
             relative = self.matrix.dot(absolute - self.coordn)
-            positions[k] = self.centre - relative[:2] / relative[2] * self.dist, numpy.sign(relative[2])
+            positions[k] = relative[:2] / relative[2] * self.dist, numpy.sign(relative[2])
         self.delete(tkinter.ALL)
         for p, q in self.objspc.lines:
             P, p = positions[p]
             Q, q = positions[q]
             if p + q == 2:
-                self.create_line(*P, *Q)
+                self.create_line(*(self.centre - P), *(self.centre - Q))
             elif p - q == 2:
                 T = Q - P
-                Q = P - T / numpy.linalg.norm(T) * 1e+9
-                self.create_line(*P, *Q)
+                Q = P - T / numpy.linalg.norm(T) * (numpy.linalg.norm(P) + numpy.linalg.norm(self.centre))
+                self.create_line(*(self.centre - P), *(self.centre - Q))
             elif q - p == 2:
                 T = P - Q
-                P = Q - T / numpy.linalg.norm(T) * 1e+9
-                self.create_line(*Q, *P)
+                P = Q - T / numpy.linalg.norm(T) * (numpy.linalg.norm(Q) + numpy.linalg.norm(self.centre))
+                self.create_line(*(self.centre - Q), *(self.centre - P))
     def turn_start(self, event):
         self.turn_evrec = event
     def tilt_start(self, event):
@@ -85,7 +85,7 @@ class Camvas(tkinter.Canvas):
         self.rota(numpy.array([rtx, rty, 0.0]))
         self.turn_evrec = event
     def tilt(self, event):
-        rtz = math.atan2(self.tilt_evrec.y - self.centre[1], self.tilt_evrec.x - self.centre[0]) - math.atan2(event.y - self.centre[1], event.x - self.centre[0])
+        rtz = numpy.arctan2(self.tilt_evrec.y - self.centre[1], self.tilt_evrec.x - self.centre[0]) - numpy.arctan2(event.y - self.centre[1], event.x - self.centre[0])
         self.rota(numpy.array([0.0, 0.0, rtz]))
         self.tilt_evrec = event
     def mvxy(self, event):
