@@ -1,8 +1,8 @@
 # Tk3D
 
-A 3D engine based on python, including a 3D model viewer and a 3D function image rendering tool.
+A 3D engine based on python, can be controlled by the mouse to move through space, including a 3D model viewer and a 3D function image rendering tool.
 
-基于 Python 实现的 3D 引擎，包括一个 3D 模型查看器与一个三维函数图像绘制工具。
+基于 Python 实现的 3D 引擎，可以通过鼠标控制在空间中移动，包括一个 3D 模型查看器与一个三维函数图像绘制工具。
 
 ![screenshot](/screenshot.gif)
 
