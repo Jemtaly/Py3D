@@ -44,8 +44,8 @@ def main():
             lv = set(((x1, y2), (x2, y1)) for x1, x2 in zip(xs[:-1], xs[+1:]) for y1, y2 in zip(ys[:-1], ys[+1:]))
         objspc.reset(verts = vs, lines = lh | lv)
         return True
-    cross = tkinter.Button(frame, text = 'PlotA', command = lambda: plot(1))
-    block = tkinter.Button(frame, text = 'PlotB', command = lambda: plot(0))
+    cross = tkinter.Button(frame, text = 'RPlot', command = lambda: plot(1)) # Rectangular plot
+    block = tkinter.Button(frame, text = 'DPlot', command = lambda: plot(0)) # Diagonal plot
     reset = tkinter.Button(frame, text = 'Clear', command = lambda: objspc.reset())
     entry.pack(side = tkinter.LEFT, expand = True, fill = tkinter.X)
     cross.pack(side = tkinter.LEFT)
