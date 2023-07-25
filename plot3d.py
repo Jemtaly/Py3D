@@ -32,7 +32,8 @@ def main():
         xs = numpy.linspace(xmin_var.get(), xmax_var.get(), xinr_var.get() + 1, endpoint = True)
         ys = numpy.linspace(ymin_var.get(), ymax_var.get(), yinr_var.get() + 1, endpoint = True)
         try:
-            vs = {(x, y): numpy.array([x, y, eval(entry.get())], float) for x in xs for y in ys}
+            fn = eval('lambda x, y: ' + entry.get())
+            vs = {(x, y): numpy.array([x, y, fn(x, y)], float) for x in xs for y in ys}
         except Exception as e:
             tkinter.messagebox.showerror(e.__class__.__name__, str(e))
             return False
@@ -44,12 +45,12 @@ def main():
             lv = set(((x1, y2), (x2, y1)) for x1, x2 in zip(xs[:-1], xs[+1:]) for y1, y2 in zip(ys[:-1], ys[+1:]))
         objspc.reset(verts = vs, lines = lh | lv)
         return True
-    cross = tkinter.Button(frame, text = 'RPlot', command = lambda: plot(1)) # Rectangular plot
-    block = tkinter.Button(frame, text = 'DPlot', command = lambda: plot(0)) # Diagonal plot
-    reset = tkinter.Button(frame, text = 'Clear', command = lambda: objspc.reset())
+    rplot = tkinter.Button(frame, text = 'RPlot', command = lambda: plot(1)) # Rectangular plot
+    dplot = tkinter.Button(frame, text = 'DPlot', command = lambda: plot(0)) # Diagonal plot
+    reset = tkinter.Button(frame, text = 'Reset', command = lambda: objspc.reset())
     entry.pack(side = tkinter.LEFT, expand = True, fill = tkinter.X)
-    cross.pack(side = tkinter.LEFT)
-    block.pack(side = tkinter.LEFT)
+    rplot.pack(side = tkinter.LEFT)
+    dplot.pack(side = tkinter.LEFT)
     reset.pack(side = tkinter.LEFT)
     wroot.mainloop()
 if __name__ == '__main__':
