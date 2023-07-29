@@ -47,22 +47,22 @@ class Camvas(tkinter.Canvas):
         positions = {}
         for k, absolute in self.objspc.verts.items():
             relative = self.matrix.dot(absolute - self.coordn)
-            positions[k] = relative[:2] / relative[2] * self.dist, numpy.sign(relative[2])
+            positions[k] = relative[:2] / (relative[2] or 1.0) * self.dist, numpy.sign(relative[2])
         self.delete(tkinter.ALL)
         for p, q in self.objspc.lines:
             P, p = positions[p]
             Q, q = positions[q]
             if p + q == 2:
                 self.create_line(*(self.centre - P), *(self.centre - Q))
-            elif p - q == 2:
-                V = P - Q # PQ'
-                N = V / numpy.linalg.norm(V)
+            elif p == 1:
+                V = Q if q == 0 else P - Q # PQ'
+                N = V / (numpy.linalg.norm(V) or 1.0)
                 a, c, r = numpy.dot(P, N), numpy.linalg.norm(P), numpy.linalg.norm(self.centre)
                 Q = P + N * ((numpy.sqrt(r * r - c * c + a * a) if r > c else abs(a)) - a)
                 self.create_line(*(self.centre - P), *(self.centre - Q))
-            elif q - p == 2:
-                V = Q - P # QP'
-                N = V / numpy.linalg.norm(V)
+            elif q == 1:
+                V = P if p == 0 else Q - P # QP'
+                N = V / (numpy.linalg.norm(V) or 1.0)
                 a, c, r = numpy.dot(Q, N), numpy.linalg.norm(Q), numpy.linalg.norm(self.centre)
                 P = Q + N * ((numpy.sqrt(r * r - c * c + a * a) if r > c else abs(a)) - a)
                 self.create_line(*(self.centre - Q), *(self.centre - P))

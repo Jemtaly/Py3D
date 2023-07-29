@@ -70,7 +70,7 @@ class QCamera(QWidget):
         positions = {}
         for k, absolute in self.objspc.verts.items():
             relative = self.matrix.dot(absolute - self.coordn)
-            positions[k] = relative[:2] / relative[2] * self.dist, numpy.sign(relative[2])
+            positions[k] = relative[:2] / (relative[2] or 1.0) * self.dist, numpy.sign(relative[2])
         C = numpy.array([self.width() / 2, self.height() / 2])
         painter = QPainter(self)
         painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
@@ -78,19 +78,19 @@ class QCamera(QWidget):
             P, p = positions[p]
             Q, q = positions[q]
             if p + q == 2:
-                painter.drawLine(*numpy.append((C - P), (C - Q)).astype(int))
-            elif p - q == 2:
-                V = P - Q # PQ'
-                N = V / numpy.linalg.norm(V)
+                painter.drawLine(*numpy.append(C - P, C - Q).astype(int))
+            elif p == 1:
+                V = Q if q == 0 else P - Q # PQ'
+                N = V / (numpy.linalg.norm(V) or 1.0)
                 a, c, r = numpy.dot(P, N), numpy.linalg.norm(P), numpy.linalg.norm(C)
                 Q = P + N * ((numpy.sqrt(r * r - c * c + a * a) if r > c else abs(a)) - a)
-                painter.drawLine(*numpy.append((C - P), (C - Q)).astype(int))
-            elif q - p == 2:
-                V = Q - P # QP'
-                N = V / numpy.linalg.norm(V)
+                painter.drawLine(*numpy.append(C - P, C - Q).astype(int))
+            elif q == 1:
+                V = P if p == 0 else Q - P # QP'
+                N = V / (numpy.linalg.norm(V) or 1.0)
                 a, c, r = numpy.dot(Q, N), numpy.linalg.norm(Q), numpy.linalg.norm(C)
                 P = Q + N * ((numpy.sqrt(r * r - c * c + a * a) if r > c else abs(a)) - a)
-                painter.drawLine(*numpy.append((C - Q), (C - P)).astype(int))
+                painter.drawLine(*numpy.append(C - Q, C - P).astype(int))
     def rota(self, rt):
         half = numpy.linalg.norm(rt)
         s, c = numpy.sin(half), numpy.cos(half)

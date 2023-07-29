@@ -11,14 +11,14 @@ def main():
     ranges = qt3d.QSliderForm()
     xmin_slider = ranges.newSlider('X min', -10, +10, -10)
     xmax_slider = ranges.newSlider('X max', -10, +10, +10)
-    xinr_slider = ranges.newSlider('X intervals', 1, 100, 20)
+    xnum_slider = ranges.newSlider('X num',   1, 100,  20)
     ymin_slider = ranges.newSlider('Y min', -10, +10, -10)
     ymax_slider = ranges.newSlider('Y max', -10, +10, +10)
-    yinr_slider = ranges.newSlider('Y intervals', 1, 100, 20)
+    ynum_slider = ranges.newSlider('Y num',   1, 100,  20)
     camera.layout().addLayout(ranges)
     def plot(mode):
-        xs = numpy.linspace(xmin_slider.value(), xmax_slider.value(), xinr_slider.value() + 1, endpoint = True)
-        ys = numpy.linspace(ymin_slider.value(), ymax_slider.value(), yinr_slider.value() + 1, endpoint = True)
+        xs = numpy.linspace(xmin_slider.value(), xmax_slider.value(), xnum_slider.value() + 1, endpoint = True)
+        ys = numpy.linspace(ymin_slider.value(), ymax_slider.value(), ynum_slider.value() + 1, endpoint = True)
         try:
             fn = eval('lambda x, y: ' + txtbox.text())
             vs = {(x, y): numpy.array([x, y, fn(x, y)], float) for x in xs for y in ys}
