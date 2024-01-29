@@ -42,7 +42,12 @@ class Camvas(tkinter.Canvas):
         self.size = size_var.get()
         self.coordn = coordn.copy()
         self.matrix = matrix.copy()
+        self.centre = numpy.zeros(2)
         self.objspc = objspc
+        self.objspc.add_camvas(self)
+    def distroy(self):
+        self.objspc.remove_camvas(self)
+        super().destroy()
     def refresh(self):
         positions = {}
         for k, absolute in self.objspc.verts.items():
@@ -93,18 +98,18 @@ class Camvas(tkinter.Canvas):
     def wheel(self, event):
         mvz = (event.delta or 1080 - event.num * 240) / self.size
         self.move(numpy.array([0.0, 0.0, mvz]))
-    def rota(self, rt):
-        half = numpy.linalg.norm(rt)
-        s, c = numpy.sin(half), numpy.cos(half)
-        x, y, z = rt / half if half else numpy.zeros(3)
+    def rota(self, rvec):
+        norm = numpy.linalg.norm(rvec)
+        s, c = numpy.sin(norm), numpy.cos(norm)
+        x, y, z = rvec / norm if norm else numpy.zeros(3)
         self.matrix = numpy.array([
             [x * x * (1 - c) + 1 * c, x * y * (1 - c) + z * s, x * z * (1 - c) - y * s],
             [y * x * (1 - c) - z * s, y * y * (1 - c) + 1 * c, y * z * (1 - c) + x * s],
             [z * x * (1 - c) + y * s, z * y * (1 - c) - x * s, z * z * (1 - c) + 1 * c],
         ]).dot(self.matrix)
         self.refresh()
-    def move(self, mv):
-        self.coordn += numpy.linalg.inv(self.matrix).dot(mv)
+    def move(self, mvec):
+        self.coordn += numpy.linalg.inv(self.matrix).dot(mvec)
         self.refresh()
     def dist_change(self, value):
         self.dist = float(value)
@@ -115,7 +120,3 @@ class Camvas(tkinter.Canvas):
     def change(self, event): # always called at startup
         self.centre = numpy.array([event.width, event.height]) / 2
         self.refresh()
-        self.objspc.add_camvas(self)
-    def distroy(self):
-        self.objspc.remove_camvas(self)
-        super().destroy()

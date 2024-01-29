@@ -91,18 +91,18 @@ class QCamera(QWidget):
                 a, c, r = numpy.dot(Q, N), numpy.linalg.norm(Q), numpy.linalg.norm(C)
                 P = Q + N * ((numpy.sqrt(r * r - c * c + a * a) if r > c else abs(a)) - a)
                 painter.drawLine(*numpy.append(C - Q, C - P).astype(int))
-    def rota(self, rt):
-        half = numpy.linalg.norm(rt)
-        s, c = numpy.sin(half), numpy.cos(half)
-        x, y, z = rt / half if half else numpy.zeros(3)
+    def rota(self, rvec):
+        norm = numpy.linalg.norm(rvec)
+        s, c = numpy.sin(norm), numpy.cos(norm)
+        x, y, z = rvec / norm if norm else numpy.zeros(3)
         self.matrix = numpy.array([
             [x * x * (1 - c) + 1 * c, x * y * (1 - c) + z * s, x * z * (1 - c) - y * s],
             [y * x * (1 - c) - z * s, y * y * (1 - c) + 1 * c, y * z * (1 - c) + x * s],
             [z * x * (1 - c) + y * s, z * y * (1 - c) - x * s, z * z * (1 - c) + 1 * c],
         ]).dot(self.matrix)
         self.update()
-    def move(self, mv):
-        self.coordn += numpy.linalg.inv(self.matrix).dot(mv)
+    def move(self, mvec):
+        self.coordn += numpy.linalg.inv(self.matrix).dot(mvec)
         self.update()
     def dist_change(self, value):
         self.dist = value
