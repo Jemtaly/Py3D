@@ -1,7 +1,7 @@
 #!/usr/bin/python3
+from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QLineEdit, QPushButton, QMessageBox
+import qt3d, numpy, sys
 def main():
-    from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QLineEdit, QPushButton, QMessageBox
-    import qt3d, numpy, sys
     app = QApplication(sys.argv)
     window = QWidget()
     window.setWindowTitle('Plot3D')

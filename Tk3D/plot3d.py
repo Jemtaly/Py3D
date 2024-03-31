@@ -1,6 +1,6 @@
 #!/usr/bin/python3
+import numpy, tk3d, tkinter, tkinter.messagebox
 def main():
-    import tkinter, tkinter.messagebox, tk3d, numpy
     wroot = tkinter.Tk()
     wroot.title('TkPlot3D')
     wroot.minsize(800, 600)
