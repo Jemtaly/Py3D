@@ -1,6 +1,8 @@
 #!/usr/bin/python3
+import sys
+import numpy
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QLineEdit, QPushButton, QMessageBox
-import qt3d, numpy, sys
+import qt3d
 def main():
     app = QApplication(sys.argv)
     window = QWidget()

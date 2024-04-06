@@ -1,7 +1,8 @@
+import copy
+import numpy
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QFormLayout, QSlider
 from PyQt5.QtGui import QMouseEvent, QPainter, QPen
-import numpy, copy
 class ObjSpc:
     def __init__(self, verts = {}, lines = set()):
         self.verts = copy.deepcopy(verts)

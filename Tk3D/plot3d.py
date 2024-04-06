@@ -1,5 +1,8 @@
 #!/usr/bin/python3
-import numpy, tk3d, tkinter, tkinter.messagebox
+import numpy
+import tkinter
+import tkinter.messagebox
+import tk3d
 def main():
     wroot = tkinter.Tk()
     wroot.title('TkPlot3D')

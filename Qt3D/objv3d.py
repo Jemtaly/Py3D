@@ -1,6 +1,9 @@
 #!/usr/bin/python3
+import argparse
+import sys
+import numpy
 from PyQt5.QtWidgets import QApplication
-import qt3d, numpy, sys, argparse
+import qt3d
 def main():
     prsr = argparse.ArgumentParser(description = '3D Viewer for Wavefront OBJ Files')
     prsr.add_argument('file', type = argparse.FileType('r'))

@@ -1,4 +1,6 @@
-import tkinter, numpy, copy
+import copy
+import numpy
+import tkinter
 class ObjSpc:
     def __init__(self, verts = {}, lines = set()):
         self.verts = copy.deepcopy(verts)
