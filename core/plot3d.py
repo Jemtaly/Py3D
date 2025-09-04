@@ -13,29 +13,31 @@ class PlotMode(Enum):
 
 
 class Graph:
-    xseg: int
-    yseg: int
+    useg: int
+    vseg: int
     verts: dict[tuple[int, int], Vec3]
 
     def __init__(
         self,
-        fn: Callable[[float, float], float],
-        xmin: float,
-        xmax: float,
-        xseg: int,
-        ymin: float,
-        ymax: float,
-        yseg: int,
+        x: Callable[[float, float], float],
+        y: Callable[[float, float], float],
+        z: Callable[[float, float], float],
+        umin: float,
+        umax: float,
+        useg: int,
+        vmin: float,
+        vmax: float,
+        vseg: int,
     ):
-        self.xseg = xseg
-        self.yseg = yseg
-        xs = np.linspace(xmin, xmax, xseg + 1, endpoint=True)
-        ys = np.linspace(ymin, ymax, yseg + 1, endpoint=True)
+        self.useg = useg
+        self.vseg = vseg
+        us = np.linspace(umin, umax, useg + 1, endpoint=True)
+        vs = np.linspace(vmin, vmax, vseg + 1, endpoint=True)
         try:
             self.verts = {
-                (i, j): np.array([x, y, fn(x, y)], float)
-                for i, x in enumerate(xs)
-                for j, y in enumerate(ys)
+                (i, j): np.array([x(u, v), y(u, v), z(u, v)], float)
+                for i, u in enumerate(us)
+                for j, v in enumerate(vs)
             }
         except Exception as e:
             raise e
@@ -46,28 +48,28 @@ class Graph:
             objspc.add_vert(key, value)
         match mode:
             case PlotMode.RECT:
-                for i in range(self.xseg):
-                    for j in range(self.yseg + 1):
+                for i in range(self.useg):
+                    for j in range(self.vseg + 1):
                         objspc.add_line((i, j), (i + 1, j))
-                for j in range(self.yseg):
-                    for i in range(self.xseg + 1):
+                for j in range(self.vseg):
+                    for i in range(self.useg + 1):
                         objspc.add_line((i, j), (i, j + 1))
             case PlotMode.DIAG:
-                for i in range(self.xseg):
-                    for j in range(self.yseg):
+                for i in range(self.useg):
+                    for j in range(self.vseg):
                         objspc.add_line((i, j), (i + 1, j + 1))
                         objspc.add_line((i, j + 1), (i + 1, j))
 
     def save(self, file: TextIO):
         table = dict[tuple[int, int], int]()
         index = count(1)
-        for i in range(self.xseg + 1):
-            for j in range(self.yseg + 1):
+        for i in range(self.useg + 1):
+            for j in range(self.vseg + 1):
                 x, y, z = self.verts[(i, j)]
                 file.write(f"v {x} {y} {z}\n")
                 table[(i, j)] = next(index)
-        for i in range(self.xseg):
-            for j in range(self.yseg):
+        for i in range(self.useg):
+            for j in range(self.vseg):
                 v0 = table[(i + 0, j + 0)]
                 v1 = table[(i + 1, j + 0)]
                 v2 = table[(i + 1, j + 1)]
