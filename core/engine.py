@@ -18,11 +18,12 @@ class ObjectSpace(Generic[T]):
         self.verts.clear()
         self.lines.clear()
 
-    def add_vert(self, key: T, value: Vec3 | None):
-        if value is None:
-            del self.verts[key]
-        else:
-            self.verts[key] = value
+    def add_vert(self, key: T, value: Vec3):
+        self.verts[key] = value
+    
+    def del_vert(self, key: T):
+        del self.verts[key]
+        self.lines = {(i, j) for i, j in self.lines if i != key and j != key}
 
     def add_line(self, p: T, q: T):
         self.lines.add((p, q))

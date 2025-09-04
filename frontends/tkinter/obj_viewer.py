@@ -11,6 +11,7 @@ def main():
     args = prsr.parse_args()
     objs = get_objspc(args.file)
     args.file.close()
+
     root = tk.Tk()
     root.title("TkObjV3D")
     root.minsize(800, 600)

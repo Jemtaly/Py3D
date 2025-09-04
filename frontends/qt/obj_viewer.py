@@ -13,6 +13,7 @@ def main():
     args = prsr.parse_args()
     objspc = get_objspc(args.file)
     args.file.close()
+
     app = QApplication(sys.argv)
     camera = QCamera(objspc)
     camera.setWindowTitle("ObjV3D")
