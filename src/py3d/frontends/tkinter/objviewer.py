@@ -1,7 +1,7 @@
 import argparse
 import tkinter as tk
 
-from core.obj_viewer import get_objspc
+from py3d.core.objviewer import get_objspc
 from .tk3d import Camvas
 
 

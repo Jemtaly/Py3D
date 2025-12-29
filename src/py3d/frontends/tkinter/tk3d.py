@@ -2,11 +2,11 @@ import tkinter as tk
 
 import numpy as np
 
-from core.engine import ObjectSpace, Camera, Vec3, M3x3
+from py3d.core.engine import ObjectSpace, Camera, Vec3
 
 
 class Camvas(tk.Canvas):
-    def __init__(self, master, objspc: ObjectSpace, coordn: Vec3 | None = None, matrix: M3x3 | None = None, dist=960.0, size=160.0):
+    def __init__(self, master, objspc: ObjectSpace, coordn: Vec3 | None = None, rotate: Vec3 | None = None, dist=960.0, size=160.0):
         super().__init__(master)
         self.bind("<ButtonPress-1>", self.turn_start)
         self.bind("<ButtonPress-2>", self.mvxy_start)
@@ -21,16 +21,16 @@ class Camvas(tk.Canvas):
         self.bind("<Button-5>", self.wheel)  # for unix
         self.bind("<MouseWheel>", self.wheel)  # for windows
         self.bind("<Configure>", self.change)
-        frame = tk.Frame(self)
-        frame.place(relx=1.0, rely=0.0, anchor=tk.NE)
         dist_var = tk.DoubleVar(value=dist)  # number of pixels between the viewpoint and the projection plane
         size_var = tk.DoubleVar(value=size)  # number of pixels corresponding to each unit length in the space
-        dist_scaler = tk.Scale(frame, from_=600.0, to=6000.0, resolution=60.0, length=180, variable=dist_var, orient=tk.HORIZONTAL, label="Dist", command=self.dist_change)
-        size_scaler = tk.Scale(frame, from_=100.0, to=1000.0, resolution=10.0, length=180, variable=size_var, orient=tk.HORIZONTAL, label="Size", command=self.size_change)
+        ne_frame = tk.Frame(self)
+        ne_frame.place(relx=1.0, rely=0.0, anchor=tk.NE)
+        dist_scaler = tk.Scale(ne_frame, length=180, orient=tk.HORIZONTAL, label="Dist (px)", variable=dist_var, from_=600.0, to=6000.0, resolution=60.0, command=self.dist_change)
+        size_scaler = tk.Scale(ne_frame, length=180, orient=tk.HORIZONTAL, label="Size (px)", variable=size_var, from_=100.0, to=1000.0, resolution=10.0, command=self.size_change)
         dist_scaler.pack()
         size_scaler.pack()
         self.centre = np.zeros(2)
-        self.camara = Camera(objspc, coordn, matrix)
+        self.camara = Camera(objspc, coordn, rotate)
         self.dist = dist_var.get()  # type: float
         self.size = size_var.get()  # type: float
 
@@ -38,6 +38,16 @@ class Camvas(tk.Canvas):
         self.delete(tk.ALL)
         for p, q in self.camara.draw(np.linalg.norm(self.centre), self.dist):
             self.create_line(*(self.centre - p), *(self.centre - q))
+        coordn = self.camara.get_coordn()
+        rotate = self.camara.get_rotate()
+        self.create_text(10, 10, text="Coordn:", anchor=tk.NW)
+        self.create_text(10, 30, text=f"  x: {coordn[0]:.2f}", anchor=tk.NW)
+        self.create_text(10, 50, text=f"  y: {coordn[1]:.2f}", anchor=tk.NW)
+        self.create_text(10, 70, text=f"  z: {coordn[2]:.2f}", anchor=tk.NW)
+        self.create_text(10, 100, text="Rotate:", anchor=tk.NW)
+        self.create_text(10, 120, text=f"  x: {np.degrees(rotate[0]):.2f}°", anchor=tk.NW)
+        self.create_text(10, 140, text=f"  y: {np.degrees(rotate[1]):.2f}°", anchor=tk.NW)
+        self.create_text(10, 160, text=f"  z: {np.degrees(rotate[2]):.2f}°", anchor=tk.NW)
 
     def turn_start(self, event: tk.Event):
         self.turn_evrec = event

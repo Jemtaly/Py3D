@@ -3,7 +3,7 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from core.obj_viewer import get_objspc
+from py3d.core.objviewer import get_objspc
 from .qt3d import QCamera
 
 

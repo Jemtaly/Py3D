@@ -6,6 +6,19 @@ A simple 3D engine based on python, including a 3D model viewer and a 3D functio
 
 ![screenshot](/screenshots/screenshot.gif)
 
+## Installation
+
+```sh
+# Cloning the repository:
+git clone https://github.com/Jemtaly/Py3D
+cd Py3D
+
+# Installing the package:
+pip install .
+# If you want to use the PyQt5 version, run this command instead:
+pip install ".[qt]"
+```
+
 ## Operation
 
 | Operation | Usage |
@@ -15,7 +28,7 @@ A simple 3D engine based on python, including a 3D model viewer and a 3D functio
 | Right button | Rotate the screen. |
 | Mouse wheel | Move forward/backward. |
 
-## ObjV3D
+## ObjViewer
 
 A simple 3D model viewer that supports reading .obj format files.
 
@@ -26,7 +39,9 @@ A simple 3D model viewer that supports reading .obj format files.
 ### Usage
 
 ```sh
-python3 -m Py3D.frontends.{tkinter/qt}.obj_viewer assets/teapot.obj
+objviewer assets/teapot.obj
+# or
+objviewer-qt assets/teapot.obj
 ```
 
 ## Plot3D
@@ -40,5 +55,7 @@ A 3D function image rendering tool.
 ### Usage
 
 ```sh
-python3 -m Py3D.frontends.{tkinter/qt}.plot3d
+plot3d
+# or
+plot3d-qt
 ```

@@ -1,42 +1,46 @@
 import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QMouseEvent, QPainter, QPen, QWheelEvent, QPaintEvent
-from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QSlider, QWidget
+from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout, QSlider, QWidget
 
-from core.engine import ObjectSpace, Camera, Vec3, M3x3
+from py3d.core.engine import ObjectSpace, Camera, Vec3
 
 
 class QSliderForm(QFormLayout):
-    def __init__(self):
+    def __init__(self, width=160):
         super().__init__()
         self.setRowWrapPolicy(QFormLayout.WrapAllRows)
+        self.width = width
 
-    def newSlider(self, label: str, min: int, max: int, val: int, callback=None, width=160):
+    def newSlider(self, label: str, min: int, max: int, val: int, callback=None) -> QSlider:
         slider = QSlider(Qt.Horizontal)
         slider.setRange(min, max)
         slider.setValue(val)
         if callback:
             slider.valueChanged.connect(callback)
-        slider.setMinimumWidth(width)
+        slider.setMinimumWidth(self.width)
         self.addRow(label, slider)
         return slider
 
 
 class QCamera(QWidget):
-    def __init__(self, objspc: ObjectSpace, coordn: Vec3 | None = None, matrix: M3x3 | None = None, dist=960, size=160):
+    def __init__(self, objspc: ObjectSpace, coordn: Vec3 | None = None, rotate: Vec3 | None = None, dist=960, size=160):
         super().__init__()
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.StrongFocus)
-        left = QSliderForm()
-        dist_slider = left.newSlider("Dist", 600, 6000, dist, self.dist_change)
-        size_slider = left.newSlider("Size", 100, 1000, size, self.size_change)
+        self.right = QVBoxLayout()
         layout = QHBoxLayout()
-        layout.addLayout(left)
         layout.addStretch(0x1)
+        layout.addLayout(self.right)
         self.setLayout(layout)
+        ne_layout = QSliderForm()
+        dist_slider = ne_layout.newSlider("Dist (px)", 600, 6000, dist, self.dist_change)
+        size_slider = ne_layout.newSlider("Size (px)", 100, 1000, size, self.size_change)
+        self.right.addLayout(ne_layout)
+        self.right.addStretch(0x1)
         self.dist = dist_slider.value()  # type: int
         self.size = size_slider.value()  # type: int
-        self.camera = Camera(objspc, coordn, matrix)
+        self.camera = Camera(objspc, coordn, rotate)
 
     def mouseMoveEvent(self, event: QMouseEvent):
         Nx, Ny = event.x(), event.y()
@@ -62,6 +66,17 @@ class QCamera(QWidget):
         C = np.array([self.width() / 2, self.height() / 2])
         for P, Q in self.camera.draw(np.linalg.norm(C), self.dist):
             painter.drawLine(*np.append(C - P, C - Q).astype(int))
+        coordn = self.camera.get_coordn()
+        rotate = self.camera.get_rotate()
+        painter.drawText(10, 20, "Coordn:")
+        painter.drawText(10, 40, f"  x: {coordn[0]:.2f}")
+        painter.drawText(10, 60, f"  y: {coordn[1]:.2f}")
+        painter.drawText(10, 80, f"  z: {coordn[2]:.2f}")
+        painter.drawText(10, 110, "Rotate:")
+        painter.drawText(10, 130, f"  x: {np.degrees(rotate[0]):.2f}°")
+        painter.drawText(10, 150, f"  y: {np.degrees(rotate[1]):.2f}°")
+        painter.drawText(10, 170, f"  z: {np.degrees(rotate[2]):.2f}°")
+        painter.end()
 
     def dist_change(self, value: int):
         self.dist = value

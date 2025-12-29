@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog
 
-from core.engine import ObjectSpace
-from core.plot3d import Graph, PlotMode
+from py3d.core.engine import ObjectSpace
+from py3d.core.plot3d import Graph, PlotMode
 from .tk3d import Camvas
 
 
@@ -21,18 +21,20 @@ class Plot3DApp(tk.Tk):
         self.vmax_var = tk.DoubleVar(value=+10.0)
         self.useg_var = tk.IntVar(value=20)
         self.vseg_var = tk.IntVar(value=20)
-        umin_scaler = tk.Scale(self.camvas, from_=-10.0, to=+10.0, resolution=0.1, length=180, variable=self.umin_var, orient=tk.HORIZONTAL, label="u min")
-        umax_scaler = tk.Scale(self.camvas, from_=-10.0, to=+10.0, resolution=0.1, length=180, variable=self.umax_var, orient=tk.HORIZONTAL, label="u max")
-        useg_scaler = tk.Scale(self.camvas, from_=1, to=100, length=180, variable=self.useg_var, orient=tk.HORIZONTAL, label="u num")
-        vmin_scaler = tk.Scale(self.camvas, from_=-10.0, to=+10.0, resolution=0.1, length=180, variable=self.vmin_var, orient=tk.HORIZONTAL, label="v min")
-        vmax_scaler = tk.Scale(self.camvas, from_=-10.0, to=+10.0, resolution=0.1, length=180, variable=self.vmax_var, orient=tk.HORIZONTAL, label="v max")
-        vseg_scaler = tk.Scale(self.camvas, from_=1, to=100, length=180, variable=self.vseg_var, orient=tk.HORIZONTAL, label="v num")
-        umin_scaler.pack(anchor=tk.W)
-        umax_scaler.pack(anchor=tk.W)
-        useg_scaler.pack(anchor=tk.W)
-        vmin_scaler.pack(anchor=tk.W)
-        vmax_scaler.pack(anchor=tk.W)
-        vseg_scaler.pack(anchor=tk.W)
+        se_frame = tk.Frame(self.camvas)
+        se_frame.place(relx=1.0, rely=1.0, anchor=tk.SE)
+        umin_scaler = tk.Scale(se_frame, length=180, orient=tk.HORIZONTAL, label="u min", variable=self.umin_var, from_=-10.0, to=+10.0, resolution=0.1)
+        umax_scaler = tk.Scale(se_frame, length=180, orient=tk.HORIZONTAL, label="u max", variable=self.umax_var, from_=-10.0, to=+10.0, resolution=0.1)
+        useg_scaler = tk.Scale(se_frame, length=180, orient=tk.HORIZONTAL, label="u num", variable=self.useg_var, from_=1, to=100)
+        vmin_scaler = tk.Scale(se_frame, length=180, orient=tk.HORIZONTAL, label="v min", variable=self.vmin_var, from_=-10.0, to=+10.0, resolution=0.1)
+        vmax_scaler = tk.Scale(se_frame, length=180, orient=tk.HORIZONTAL, label="v max", variable=self.vmax_var, from_=-10.0, to=+10.0, resolution=0.1)
+        vseg_scaler = tk.Scale(se_frame, length=180, orient=tk.HORIZONTAL, label="v num", variable=self.vseg_var, from_=1, to=100)
+        umin_scaler.pack()
+        umax_scaler.pack()
+        useg_scaler.pack()
+        vmin_scaler.pack()
+        vmax_scaler.pack()
+        vseg_scaler.pack()
         frame = tk.Frame(self)
         frame.pack(fill=tk.X)
         self.x_entry = tk.Entry(frame)
@@ -74,7 +76,7 @@ class Plot3DApp(tk.Tk):
             y = eval(f"lambda u, v: float({y_expr})", glob)
             z = eval(f"lambda u, v: float({z_expr})", glob)
             self.graph = Graph(x, y, z, umin, umax, useg, vmin, vmax, vseg)
-        except Exception as e:
+        except BaseException as e:
             messagebox.showerror(e.__class__.__name__, str(e))
         else:
             self.graph.plot(self.objspc, mode)
@@ -90,7 +92,7 @@ class Plot3DApp(tk.Tk):
         try:
             with open(path, "w") as file:
                 self.graph.save(file)
-        except Exception as e:
+        except BaseException as e:
             messagebox.showerror(e.__class__.__name__, str(e))
 
 

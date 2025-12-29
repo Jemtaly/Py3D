@@ -2,8 +2,8 @@ import sys
 
 from PyQt5.QtWidgets import QApplication, QFileDialog, QGridLayout, QLineEdit, QMessageBox, QPushButton, QWidget
 
-from core.engine import ObjectSpace
-from core.plot3d import Graph, PlotMode
+from py3d.core.engine import ObjectSpace
+from py3d.core.plot3d import Graph, PlotMode
 from .qt3d import QCamera, QSliderForm
 
 
@@ -15,14 +15,14 @@ class Plot3DWindow(QWidget):
         self.graph = None
         self.objspc = ObjectSpace()
         self.camera = QCamera(self.objspc)
-        self.ranges = QSliderForm()
-        self.umin_slider = self.ranges.newSlider("u min", -10, +10, -10)
-        self.umax_slider = self.ranges.newSlider("u max", -10, +10, +10)
-        self.useg_slider = self.ranges.newSlider("u num", 1, 100, 20)
-        self.vmin_slider = self.ranges.newSlider("v min", -10, +10, -10)
-        self.vmax_slider = self.ranges.newSlider("v max", -10, +10, +10)
-        self.vseg_slider = self.ranges.newSlider("v num", 1, 100, 20)
-        self.camera.layout().addLayout(self.ranges)
+        se_layout = QSliderForm()
+        self.umin_slider = se_layout.newSlider("u min", -10, +10, -10)
+        self.umax_slider = se_layout.newSlider("u max", -10, +10, +10)
+        self.useg_slider = se_layout.newSlider("u num", 1, 100, 20)
+        self.vmin_slider = se_layout.newSlider("v min", -10, +10, -10)
+        self.vmax_slider = se_layout.newSlider("v max", -10, +10, +10)
+        self.vseg_slider = se_layout.newSlider("v num", 1, 100, 20)
+        self.camera.right.addLayout(se_layout)
         self.x_edit = QLineEdit()
         self.y_edit = QLineEdit()
         self.z_edit = QLineEdit()
@@ -68,7 +68,7 @@ class Plot3DWindow(QWidget):
             y = eval(f"lambda u, v: float({y_expr})", glob)
             z = eval(f"lambda u, v: float({z_expr})", glob)
             self.graph = Graph(x, y, z, umin, umax, useg, vmin, vmax, vseg)
-        except Exception as e:
+        except BaseException as e:
             QMessageBox.critical(self, e.__class__.__name__, str(e))
         else:
             self.graph.plot(self.objspc, mode)
@@ -84,7 +84,7 @@ class Plot3DWindow(QWidget):
         try:
             with open(path, "w") as file:
                 self.graph.save(file)
-        except Exception as e:
+        except BaseException as e:
             QMessageBox.critical(self, e.__class__.__name__, str(e))
 
 
