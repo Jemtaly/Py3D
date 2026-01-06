@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QMouseEvent, QPainter, QPen, QWheelEvent, QPaintEvent
 from PyQt5.QtWidgets import QFormLayout, QHBoxLayout, QVBoxLayout, QSlider, QWidget
 
-from py3d.core.engine import ObjectSpace, Camera, Vec3
+from py3d.core.engine import ObjectSpace, Camera, CoordVec3, EulerVec3
 
 
 class QSliderForm(QFormLayout):
@@ -24,7 +24,7 @@ class QSliderForm(QFormLayout):
 
 
 class QCamera(QWidget):
-    def __init__(self, objspc: ObjectSpace, coordn: Vec3 | None = None, rotate: Vec3 | None = None, dist=960, size=160):
+    def __init__(self, objspc: ObjectSpace, coordv: CoordVec3 | None = None, eulerv: EulerVec3 | None = None, dist=960, size=160):
         super().__init__()
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.StrongFocus)
@@ -40,7 +40,7 @@ class QCamera(QWidget):
         self.right.addStretch(0x1)
         self.dist = dist_slider.value()  # type: int
         self.size = size_slider.value()  # type: int
-        self.camera = Camera(objspc, coordn, rotate)
+        self.camera = Camera(objspc, coordv, eulerv)
 
     def mouseMoveEvent(self, event: QMouseEvent):
         Nx, Ny = event.x(), event.y()
@@ -66,16 +66,16 @@ class QCamera(QWidget):
         C = np.array([self.width() / 2, self.height() / 2])
         for P, Q in self.camera.draw(np.linalg.norm(C), self.dist):
             painter.drawLine(*np.append(C - P, C - Q).astype(int))
-        coordn = self.camera.get_coordn()
-        rotate = self.camera.get_rotate()
-        painter.drawText(10, 20, "Coordn:")
-        painter.drawText(10, 40, f"  x: {coordn[0]:.2f}")
-        painter.drawText(10, 60, f"  y: {coordn[1]:.2f}")
-        painter.drawText(10, 80, f"  z: {coordn[2]:.2f}")
-        painter.drawText(10, 110, "Rotate:")
-        painter.drawText(10, 130, f"  x: {np.degrees(rotate[0]):.2f}°")
-        painter.drawText(10, 150, f"  y: {np.degrees(rotate[1]):.2f}°")
-        painter.drawText(10, 170, f"  z: {np.degrees(rotate[2]):.2f}°")
+        coordv = self.camera.get_coordv()
+        eulerv = self.camera.get_eulerv()
+        painter.drawText(10, 20, "Coordinates:")
+        painter.drawText(10, 40, f"  x: {coordv[0]:.2f}")
+        painter.drawText(10, 60, f"  y: {coordv[1]:.2f}")
+        painter.drawText(10, 80, f"  z: {coordv[2]:.2f}")
+        painter.drawText(10, 110, "Rotation:")
+        painter.drawText(10, 130, f"  x: {np.degrees(eulerv[0]):.2f}°")
+        painter.drawText(10, 150, f"  y: {np.degrees(eulerv[1]):.2f}°")
+        painter.drawText(10, 170, f"  z: {np.degrees(eulerv[2]):.2f}°")
         painter.end()
 
     def dist_change(self, value: int):
@@ -86,10 +86,10 @@ class QCamera(QWidget):
         self.size = value
         self.update()
 
-    def rota(self, rvec: Vec3):
+    def rota(self, rvec: EulerVec3):
         self.camera.rota(rvec)
         self.update()
 
-    def move(self, mvec: Vec3):
+    def move(self, mvec: CoordVec3):
         self.camera.move(mvec)
         self.update()

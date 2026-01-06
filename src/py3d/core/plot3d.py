@@ -4,7 +4,7 @@ from enum import Enum
 
 import numpy as np
 
-from .engine import ObjectSpace, Vec3
+from .engine import ObjectSpace, CoordVec3
 
 
 class PlotMode(Enum):
@@ -15,7 +15,7 @@ class PlotMode(Enum):
 class Graph:
     useg: int
     vseg: int
-    verts: dict[tuple[int, int], Vec3]
+    verts: dict[tuple[int, int], CoordVec3]
 
     def __init__(
         self,
