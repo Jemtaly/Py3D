@@ -6,8 +6,8 @@ import numpy as np
 from .engine import ObjectSpace
 
 
-def get_objspc(file: TextIO) -> ObjectSpace:
-    objs = ObjectSpace()
+def get_objspc(file: TextIO) -> ObjectSpace[int]:
+    objs = ObjectSpace[int]()
     v = count(1)
     for line in file:
         match line.split():

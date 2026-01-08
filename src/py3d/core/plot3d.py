@@ -42,7 +42,7 @@ class Graph:
         except Exception as e:
             raise e
 
-    def plot(self, objspc: ObjectSpace, mode: PlotMode):
+    def plot(self, objspc: ObjectSpace[tuple[int, int]], mode: PlotMode):
         objspc.clear()
         for key, value in self.verts.items():
             objspc.add_vert(key, value)

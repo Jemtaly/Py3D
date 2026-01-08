@@ -7,7 +7,7 @@ from py3d.core.engine import ObjectSpace, Camera, CoordVec3, EulerVec3
 
 
 class QSliderForm(QFormLayout):
-    def __init__(self, width=160):
+    def __init__(self, width: int = 160):
         super().__init__()
         self.setRowWrapPolicy(QFormLayout.WrapAllRows)
         self.width = width
@@ -24,7 +24,7 @@ class QSliderForm(QFormLayout):
 
 
 class QCamera(QWidget):
-    def __init__(self, objspc: ObjectSpace, coordv: CoordVec3 | None = None, eulerv: EulerVec3 | None = None, dist=960, size=160):
+    def __init__(self, objspc: ObjectSpace, coordv: CoordVec3 | None = None, eulerv: EulerVec3 | None = None, dist: int = 960, size: int = 160):
         super().__init__()
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.StrongFocus)

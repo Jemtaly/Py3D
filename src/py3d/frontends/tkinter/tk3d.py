@@ -6,7 +6,7 @@ from py3d.core.engine import ObjectSpace, Camera, CoordVec3, EulerVec3
 
 
 class Camvas(tk.Canvas):
-    def __init__(self, master, objspc: ObjectSpace, coordv: CoordVec3 | None = None, eulerv: EulerVec3 | None = None, dist=960.0, size=160.0):
+    def __init__(self, master: tk.Misc | None, objspc: ObjectSpace, coordv: CoordVec3 | None = None, eulerv: EulerVec3 | None = None, dist: float = 960.0, size: float = 160.0):
         super().__init__(master)
         self.bind("<ButtonPress-1>", self.turn_start)
         self.bind("<ButtonPress-2>", self.mvxy_start)
